@@ -9,9 +9,13 @@ export default function authJwt(req, res, next) {
 
   try {
     const decoded = jwt.verify(parts[1], process.env.JWT_SECRET || 'dev-secret');
-    req.user = decoded;
+    req.user = {
+      id: decoded.userId || decoded.id,
+      role: decoded.role,
+      schoolCode: decoded.schoolCode
+    };
 
-    if (req.params?.schoolCode && decoded.schoolCode && decoded.schoolCode !== req.params.schoolCode) {
+    if (req.params?.schoolCode && req.user.schoolCode && req.user.schoolCode !== req.params.schoolCode) {
       return res.status(403).json({ message: 'Forbidden' });
     }
 

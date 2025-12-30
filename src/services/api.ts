@@ -1,4 +1,4 @@
-const API_BASE = import.meta.env.VITE_API_BASE_URL || '';
+const API_BASE = import.meta.env.VITE_API_URL || '';
 
 type RequestConfig = {
   method: 'GET' | 'POST';
@@ -9,16 +9,16 @@ type RequestConfig = {
 const requestInterceptors: Array<(config: RequestConfig) => RequestConfig> = [
   (config) => {
     const token = localStorage.getItem('token') || localStorage.getItem('auth_token');
-    if (token) {
-      return {
-        ...config,
-        headers: {
-          ...config.headers,
-          Authorization: `Bearer ${token}`
-        }
-      };
+    if (!token) {
+      throw new Error('No auth token');
     }
-    return config;
+    return {
+      ...config,
+      headers: {
+        ...config.headers,
+        Authorization: `Bearer ${token}`
+      }
+    };
   }
 ];
 

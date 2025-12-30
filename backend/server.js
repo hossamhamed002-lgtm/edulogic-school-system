@@ -2,12 +2,16 @@ import express from 'express';
 import cors from 'cors';
 import 'dotenv/config';
 import Database from 'better-sqlite3';
+import jwt from 'jsonwebtoken';
 // import academicRoutes from './routes/academic/index.js';
 // import membersRoutes from './routes/members/index.js';
 import authRoutes from './routes/auth/login.js';
 import rateLimit from './utils/rateLimit.js';
 import membersUsersRoutes from './routes/members/users.js';
 import authJwt from './middlewares/authJwt.js';
+import rolePermissions from './middlewares/rolePermissions.js';
+import devLoginRouter from './routes/dev/login.js';
+import { requireRole } from './middlewares/requireRole.js';
 // import financeRoutes from './routes/finance/index.js';
 // import coreRoutes from './routes/core/index.js';
 
@@ -154,6 +158,16 @@ db.prepare(`
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     school_code TEXT NOT NULL,
     username TEXT NOT NULL,
+    password_hash TEXT NOT NULL,
+    role TEXT NOT NULL,
+    is_active INTEGER DEFAULT 1
+  )
+`).run();
+
+db.prepare(`
+  CREATE TABLE IF NOT EXISTS developer_users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL UNIQUE,
     password_hash TEXT NOT NULL,
     role TEXT NOT NULL,
     is_active INTEGER DEFAULT 1
@@ -372,6 +386,18 @@ db.prepare(`
   }
 })();
 
+// Bootstrap developer account
+(() => {
+  const { cnt } = db.prepare('SELECT COUNT(*) AS cnt FROM developer_users').get();
+  if (cnt === 0) {
+    db.prepare(`
+      INSERT INTO developer_users (username, password_hash, role, is_active)
+      VALUES (?, ?, ?, ?)
+    `).run('PRO-2025-ADMIN-MASTER', 'Dev123', 'DEVELOPER', 1);
+  }
+  console.log('Developer account ready');
+})();
+
 // Academic routes
 // app.use('/academic', academicRoutes);
 // app.use('/members', membersRoutes);
@@ -398,9 +424,11 @@ app.get('/health', (_req, res) => {
 
 // Protect all subsequent routes
 app.use(authJwt);
+app.use(rolePermissions);
 
 // Protected routers
 app.use(membersUsersRoutes);
+app.use('/dev', devLoginRouter);
 
 app.get('/school-info/:year', (req, res) => {
   try {
@@ -512,52 +540,52 @@ const makeAcademicHandler = (table) => ({
 });
 
 const yearsHandler = makeAcademicHandler('academic_years');
-app.get('/academic/years/:schoolCode', yearsHandler.get);
-app.post('/academic/years/:schoolCode', yearsHandler.post);
+app.get('/academic/years/:schoolCode', requireRole(['ADMIN', 'STAFF']), yearsHandler.get);
+app.post('/academic/years/:schoolCode', requireRole(['ADMIN', 'STAFF']), yearsHandler.post);
 
 const stagesHandler = makeAcademicHandler('academic_stages');
-app.get('/academic/stages/:schoolCode', stagesHandler.get);
-app.post('/academic/stages/:schoolCode', stagesHandler.post);
+app.get('/academic/stages/:schoolCode', requireRole(['ADMIN', 'STAFF']), stagesHandler.get);
+app.post('/academic/stages/:schoolCode', requireRole(['ADMIN', 'STAFF']), stagesHandler.post);
 
 const gradesHandler = makeAcademicHandler('academic_grades');
-app.get('/academic/grades/:schoolCode', gradesHandler.get);
-app.post('/academic/grades/:schoolCode', gradesHandler.post);
+app.get('/academic/grades/:schoolCode', requireRole(['ADMIN', 'STAFF']), gradesHandler.get);
+app.post('/academic/grades/:schoolCode', requireRole(['ADMIN', 'STAFF']), gradesHandler.post);
 
 const classesHandler = makeAcademicHandler('academic_classes');
-app.get('/academic/classes/:schoolCode', classesHandler.get);
-app.post('/academic/classes/:schoolCode', classesHandler.post);
+app.get('/academic/classes/:schoolCode', requireRole(['ADMIN', 'STAFF']), classesHandler.get);
+app.post('/academic/classes/:schoolCode', requireRole(['ADMIN', 'STAFF']), classesHandler.post);
 
 const receiptsHandler = makeAcademicHandler('finance_receipts');
-app.get('/finance/receipts/:schoolCode', receiptsHandler.get);
-app.post('/finance/receipts/:schoolCode', receiptsHandler.post);
+app.get('/finance/receipts/:schoolCode', requireRole(['ADMIN']), receiptsHandler.get);
+app.post('/finance/receipts/:schoolCode', requireRole(['ADMIN']), receiptsHandler.post);
 
 const journalHandler = makeAcademicHandler('finance_journal');
-app.get('/finance/journal/:schoolCode', journalHandler.get);
-app.post('/finance/journal/:schoolCode', journalHandler.post);
+app.get('/finance/journal/:schoolCode', requireRole(['ADMIN']), journalHandler.get);
+app.post('/finance/journal/:schoolCode', requireRole(['ADMIN']), journalHandler.post);
 
 const accountsHandler = makeAcademicHandler('finance_accounts');
-app.get('/finance/accounts/:schoolCode', accountsHandler.get);
-app.post('/finance/accounts/:schoolCode', accountsHandler.post);
+app.get('/finance/accounts/:schoolCode', requireRole(['ADMIN']), accountsHandler.get);
+app.post('/finance/accounts/:schoolCode', requireRole(['ADMIN']), accountsHandler.post);
 
 const banksHandler = makeAcademicHandler('finance_banks');
-app.get('/finance/banks/:schoolCode', banksHandler.get);
-app.post('/finance/banks/:schoolCode', banksHandler.post);
+app.get('/finance/banks/:schoolCode', requireRole(['ADMIN']), banksHandler.get);
+app.post('/finance/banks/:schoolCode', requireRole(['ADMIN']), banksHandler.post);
 
 const suppliersHandler = makeAcademicHandler('finance_suppliers');
-app.get('/finance/suppliers/:schoolCode', suppliersHandler.get);
-app.post('/finance/suppliers/:schoolCode', suppliersHandler.post);
+app.get('/finance/suppliers/:schoolCode', requireRole(['ADMIN']), suppliersHandler.get);
+app.post('/finance/suppliers/:schoolCode', requireRole(['ADMIN']), suppliersHandler.post);
 
 const feeItemsHandler = makeAcademicHandler('finance_fee_items');
-app.get('/finance/fee-items/:schoolCode', feeItemsHandler.get);
-app.post('/finance/fee-items/:schoolCode', feeItemsHandler.post);
+app.get('/finance/fee-items/:schoolCode', requireRole(['ADMIN']), feeItemsHandler.get);
+app.post('/finance/fee-items/:schoolCode', requireRole(['ADMIN']), feeItemsHandler.post);
 
 const feeStructureHandler = makeAcademicHandler('finance_fee_structure');
-app.get('/finance/fee-structure/:schoolCode', feeStructureHandler.get);
-app.post('/finance/fee-structure/:schoolCode', feeStructureHandler.post);
+app.get('/finance/fee-structure/:schoolCode', requireRole(['ADMIN']), feeStructureHandler.get);
+app.post('/finance/fee-structure/:schoolCode', requireRole(['ADMIN']), feeStructureHandler.post);
 
 const auditHandler = makeAcademicHandler('audit_logs');
-app.get('/audit/logs/:schoolCode', auditHandler.get);
-app.post('/audit/logs/:schoolCode', auditHandler.post);
+app.get('/audit/logs/:schoolCode', requireRole(['ADMIN', 'DEVELOPER']), auditHandler.get);
+app.post('/audit/logs/:schoolCode', requireRole(['ADMIN', 'DEVELOPER']), auditHandler.post);
 
 const storeTypesHandler = makeAcademicHandler('store_inventory_types');
 app.get('/stores/types/:schoolCode', storeTypesHandler.get);

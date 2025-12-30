@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
+import { DEV_API_BASE_URL } from '../services/devApi';
 
-const API_BASE = import.meta.env.VITE_API_URL || '';
+const API_BASE = DEV_API_BASE_URL;
 
 const DeveloperLogin: React.FC = () => {
   const [username, setUsername] = useState('');
@@ -25,7 +26,8 @@ const DeveloperLogin: React.FC = () => {
       }
       const data = await res.json();
       if (data?.token) {
-        localStorage.setItem('token', data.token);
+        localStorage.setItem('dev_token', data.token);
+        localStorage.setItem('dev_user', JSON.stringify(data.user || {}));
         window.location.href = '/dev/dashboard';
         return;
       }

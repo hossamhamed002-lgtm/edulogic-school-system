@@ -1,5 +1,5 @@
-export const API_BASE_URL = 'https://school-pay-pro.onrender.com';
-const API_BASE = API_BASE_URL;
+export const DEV_API_BASE_URL = 'https://school-pay-pro.onrender.com';
+const API_BASE = DEV_API_BASE_URL;
 
 type RequestConfig = {
   method: 'GET' | 'POST';
@@ -8,17 +8,15 @@ type RequestConfig = {
   url?: string;
 };
 
-const isAuthFree = (url?: string) =>
-  url?.startsWith('/auth/login');
+const isAuthFree = (url?: string) => url?.startsWith('/dev/login');
 
 const requestInterceptors: Array<(config: RequestConfig & { url?: string }) => RequestConfig> = [
   (config) => {
-    const userToken = localStorage.getItem('token') || localStorage.getItem('auth_token');
+    const token = localStorage.getItem('dev_token');
     const isLogin = isAuthFree(config.url);
     const isOptions = config.method === 'OPTIONS';
 
-    // لا نضيف الهيدر في حالة عدم وجود توكن، أو طلبات الدخول، أو OPTIONS
-    if (!userToken || isLogin || isOptions) {
+    if (!token || isLogin || isOptions) {
       return { ...config, headers: { ...config.headers } };
     }
 
@@ -26,7 +24,7 @@ const requestInterceptors: Array<(config: RequestConfig & { url?: string }) => R
       ...config,
       headers: {
         ...config.headers,
-        Authorization: `Bearer ${userToken}`
+        Authorization: `Bearer ${token}`
       }
     };
   }
@@ -37,15 +35,10 @@ const applyInterceptors = (config: RequestConfig) =>
 
 const handleResponse = async (res: Response) => {
   if (res.status === 401) {
-    const hasUserToken =
-      !!localStorage.getItem('token') ||
-      !!localStorage.getItem('auth_token');
-    if (hasUserToken) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('auth_token');
-      localStorage.removeItem('auth_user');
-      localStorage.removeItem('user');
-      window.location.href = '/login';
+    const hasDevToken = !!localStorage.getItem('dev_token');
+    if (hasDevToken) {
+      localStorage.removeItem('dev_token');
+      window.location.href = '/dev/login';
     }
     throw new Error('Unauthorized');
   }
@@ -56,10 +49,8 @@ const handleResponse = async (res: Response) => {
   return res.json();
 };
 
-export const apiGet = async (url: string) => {
-  const hasToken =
-    !!localStorage.getItem('token') ||
-    !!localStorage.getItem('auth_token');
+export const devApiGet = async (url: string) => {
+  const hasToken = !!localStorage.getItem('dev_token');
   if (!hasToken && !isAuthFree(url)) {
     throw new Error('No auth token');
   }
@@ -75,11 +66,8 @@ export const apiGet = async (url: string) => {
   return handleResponse(res);
 };
 
-export const apiPost = async (url: string, body: any) => {
-  const hasToken =
-    !!localStorage.getItem('dev_token') ||
-    !!localStorage.getItem('token') ||
-    !!localStorage.getItem('auth_token');
+export const devApiPost = async (url: string, body: any) => {
+  const hasToken = !!localStorage.getItem('dev_token');
   if (!hasToken && !isAuthFree(url)) {
     throw new Error('No auth token');
   }

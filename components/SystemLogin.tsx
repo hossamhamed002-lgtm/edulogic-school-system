@@ -5,7 +5,8 @@ import schoolPayLogo from '../src/assets/schoolpay-logo.png';
 import { getSchoolLogoByCode } from '../db_engine';
 import OtpPrompt from './security/OtpPrompt';
 import { getSecuritySettings } from '../security/securitySettings';
-const API_BASE = (import.meta as any).env?.VITE_API_BASE_URL || 'http://localhost:4100';
+import { API_BASE_URL } from '../src/services/api';
+const API_BASE = API_BASE_URL;
 
 interface SystemLoginProps {
   onLogin: (

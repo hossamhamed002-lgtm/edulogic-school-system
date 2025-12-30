@@ -20,6 +20,27 @@ const app = express();
 const PORT = process.env.PORT || 4001;
 const DB_PATH = process.env.DB_PATH || './school.db';
 
+const allowedOrigins = [
+  'https://edulogic-school-system.pages.dev'
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ['GET','POST','PUT','DELETE','OPTIONS'],
+  allowedHeaders: ['Content-Type','Authorization'],
+  credentials: true
+}));
+
+app.options('*', (req, res) => {
+  res.sendStatus(204);
+});
+
 const corsOrigins = (process.env.CORS_ORIGIN || 'https://schoolpaypro.netlify.app').split(',').filter(Boolean);
 const corsOptions = {
   origin: corsOrigins,

@@ -1,6 +1,10 @@
 import jwt from 'jsonwebtoken';
 
 export default function authJwt(req, res, next) {
+  if (req.method === 'OPTIONS') {
+    return next();
+  }
+
   const authHeader = req.headers.authorization || '';
   const parts = authHeader.split(' ');
   if (parts.length !== 2 || parts[0] !== 'Bearer') {

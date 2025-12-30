@@ -5,16 +5,18 @@ type RequestConfig = {
   method: 'GET' | 'POST';
   headers: Record<string, string>;
   body?: string;
+  url?: string;
 };
+
+const isAuthFree = (url?: string) =>
+  url?.startsWith('/auth/login') || url?.startsWith('/dev/login');
 
 const requestInterceptors: Array<(config: RequestConfig & { url?: string }) => RequestConfig> = [
   (config) => {
     const devToken = localStorage.getItem('dev_token');
     const userToken = localStorage.getItem('token') || localStorage.getItem('auth_token');
     const token = devToken || userToken;
-    const isLogin =
-      config.url?.startsWith('/auth/login') ||
-      config.url?.startsWith('/dev/login');
+    const isLogin = isAuthFree(config.url);
     const isOptions = config.method === 'OPTIONS';
 
     // لا نضيف الهيدر في حالة عدم وجود توكن، أو طلبات الدخول، أو OPTIONS
@@ -61,6 +63,13 @@ const handleResponse = async (res: Response) => {
 };
 
 export const apiGet = async (url: string) => {
+  const hasToken =
+    !!localStorage.getItem('dev_token') ||
+    !!localStorage.getItem('token') ||
+    !!localStorage.getItem('auth_token');
+  if (!hasToken && !isAuthFree(url)) {
+    throw new Error('No auth token');
+  }
   const baseConfig: RequestConfig = {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' },
@@ -74,6 +83,13 @@ export const apiGet = async (url: string) => {
 };
 
 export const apiPost = async (url: string, body: any) => {
+  const hasToken =
+    !!localStorage.getItem('dev_token') ||
+    !!localStorage.getItem('token') ||
+    !!localStorage.getItem('auth_token');
+  if (!hasToken && !isAuthFree(url)) {
+    throw new Error('No auth token');
+  }
   const baseConfig: RequestConfig = {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

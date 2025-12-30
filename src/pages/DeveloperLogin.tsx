@@ -27,6 +27,9 @@ const DeveloperLogin: React.FC = () => {
       if (data?.token) {
         localStorage.setItem('dev_token', data.token);
         localStorage.setItem('dev_user_role', 'DEVELOPER');
+        // خزن التوكن أيضًا بنفس مفاتيح المستخدم العادي لضمان استخدامه في كل الطلبات
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('auth_token', data.token);
         window.location.href = '/dev/dashboard';
         return;
       }
@@ -78,4 +81,3 @@ const DeveloperLogin: React.FC = () => {
 };
 
 export default DeveloperLogin;
-

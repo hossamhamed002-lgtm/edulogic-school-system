@@ -32,7 +32,7 @@ root.render(
             <Route
               path="/admin"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute allowedRoles={['DEVELOPER']}>
                   <App />
                 </ProtectedRoute>
               }

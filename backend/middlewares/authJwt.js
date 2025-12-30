@@ -1,0 +1,22 @@
+import jwt from 'jsonwebtoken';
+
+export default function authJwt(req, res, next) {
+  const authHeader = req.headers.authorization || '';
+  const parts = authHeader.split(' ');
+  if (parts.length !== 2 || parts[0] !== 'Bearer') {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
+
+  try {
+    const decoded = jwt.verify(parts[1], process.env.JWT_SECRET || 'dev-secret');
+    req.user = decoded;
+
+    if (req.params?.schoolCode && decoded.schoolCode && decoded.schoolCode !== req.params.schoolCode) {
+      return res.status(403).json({ message: 'Forbidden' });
+    }
+
+    return next();
+  } catch {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
+}

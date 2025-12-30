@@ -87,29 +87,7 @@ const SystemLogin: React.FC<SystemLoginProps> = ({
   const handleProgrammerSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setProgrammerError('');
-    const user = programmerUser.trim();
-    const pass = programmerPass.trim();
-    if (!user || !pass) {
-      setProgrammerError('اسم المستخدم وكلمة المرور مطلوبان.');
-      return;
-    }
-
-    (async () => {
-      try {
-        const res = await fetch(`${API_BASE}/backups/${encodeURIComponent('PROGRAMMER_CREDENTIALS')}`);
-        let saved: any = null;
-        if (res.ok) {
-          saved = await res.json();
-        }
-        if (!saved || saved.user !== user || saved.pass !== pass) {
-          setProgrammerError('بيانات المبرمج غير صحيحة.');
-          return;
-        }
-        onProgrammerLogin(user);
-      } catch {
-        setProgrammerError('بيانات المبرمج غير صحيحة.');
-      }
-    })();
+    window.location.href = '/dev/login';
   };
 
   const handleOtpVerify = async (code: string) => {

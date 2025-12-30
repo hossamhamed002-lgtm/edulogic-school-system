@@ -37,6 +37,12 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const path = window.location.pathname;
     const isSelect = path === '/select-school';
     const isLogin = path === '/login';
+    const isDev = path.startsWith('/dev');
+
+    if (isDev) {
+      setReady(true);
+      return;
+    }
 
     if (!sel || !sel.schoolCode || !sel.academicYearId) {
       if (isSelect || isLogin) {
@@ -56,7 +62,13 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     load();
   }, []);
 
-  if (!ready && window.location.pathname !== '/select-school' && window.location.pathname !== '/login') return null;
+  if (
+    !ready &&
+    window.location.pathname !== '/select-school' &&
+    window.location.pathname !== '/login' &&
+    !window.location.pathname.startsWith('/dev')
+  )
+    return null;
 
   return (
     <AppContext.Provider

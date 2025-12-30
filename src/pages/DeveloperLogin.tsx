@@ -30,6 +30,15 @@ const DeveloperLogin: React.FC = () => {
         // خزن التوكن أيضًا بنفس مفاتيح المستخدم العادي لضمان استخدامه في كل الطلبات
         localStorage.setItem('token', data.token);
         localStorage.setItem('auth_token', data.token);
+        localStorage.setItem(
+          'auth_user',
+          JSON.stringify({
+            id: data.user?.id,
+            username: data.user?.username,
+            role: 'DEVELOPER',
+            scope: 'SYSTEM'
+          })
+        );
         window.location.href = '/dev/dashboard';
         return;
       }

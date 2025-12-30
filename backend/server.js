@@ -15,12 +15,16 @@ const app = express();
 const PORT = process.env.PORT || 4001;
 const DB_PATH = process.env.DB_PATH || './school.db';
 
-app.use(
-  cors({
-    origin: (process.env.CORS_ORIGIN || '').split(',').filter(Boolean) || '*',
-    credentials: true
-  })
-);
+const corsOrigins = (process.env.CORS_ORIGIN || 'https://schoolpaypro.netlify.app').split(',').filter(Boolean);
+const corsOptions = {
+  origin: corsOrigins,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 app.use(express.json({ limit: '5mb' }));
 app.use('/api', rateLimit);
 
@@ -367,9 +371,6 @@ db.prepare(`
     console.log('Default admin user created');
   }
 })();
-
-app.use(cors());
-app.use(express.json({ limit: '5mb' }));
 
 // Academic routes
 // app.use('/academic', academicRoutes);

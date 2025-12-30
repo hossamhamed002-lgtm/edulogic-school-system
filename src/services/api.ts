@@ -27,11 +27,16 @@ const applyInterceptors = (config: RequestConfig) =>
 
 const handleResponse = async (res: Response) => {
   if (res.status === 401) {
-    localStorage.removeItem('token');
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('auth_user');
-    localStorage.removeItem('user');
-    window.location.href = '/login';
+    const hasToken =
+      !!localStorage.getItem('token') ||
+      !!localStorage.getItem('auth_token');
+    if (hasToken) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('auth_user');
+      localStorage.removeItem('user');
+      window.location.href = '/login';
+    }
     throw new Error('Unauthorized');
   }
   if (!res.ok) {

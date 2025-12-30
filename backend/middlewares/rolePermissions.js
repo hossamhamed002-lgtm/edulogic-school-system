@@ -22,11 +22,13 @@ export default function rolePermissions(req, res, next) {
 
   // DEVELOPER: allow only settings and audit
   if (role === 'DEVELOPER') {
-    const allowed = path.startsWith('/settings/') || path.startsWith('/audit/');
+    const allowed =
+      path.startsWith('/settings/') ||
+      path.startsWith('/audit/') ||
+      path.startsWith('/backups/');
     if (!allowed) return res.status(403).json({ error: 'Forbidden' });
     return next();
   }
 
   return res.status(403).json({ error: 'Forbidden' });
 }
-

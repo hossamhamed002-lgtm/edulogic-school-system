@@ -9,6 +9,7 @@ import Unauthorized from './src/pages/Unauthorized';
 import SelectSchool from './src/pages/SelectSchool';
 import DeveloperLogin from './src/pages/DeveloperLogin';
 import DeveloperDashboard from './src/pages/DeveloperDashboard';
+import DeveloperLayout from './src/layouts/DeveloperLayout';
 import { AppContextProvider } from './src/contexts/AppContext';
 import { AuthProvider } from './src/context/AuthContext';
 
@@ -51,13 +52,15 @@ root.render(
             <Route path="/login" element={<App />} />
             <Route path="/dev/login" element={<DeveloperLogin />} />
             <Route
-              path="/dev/dashboard"
+              path="/dev"
               element={
                 <DevAuthGuard>
-                  <DeveloperDashboard />
+                  <DeveloperLayout />
                 </DevAuthGuard>
               }
-            />
+            >
+              <Route path="dashboard" element={<DeveloperDashboard />} />
+            </Route>
             <Route path="/unauthorized" element={<Unauthorized />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

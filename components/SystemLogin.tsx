@@ -83,7 +83,7 @@ const SystemLogin: React.FC<SystemLoginProps> = ({
   }, [schoolCode]);
 
   const year = new Date().getFullYear();
-  const programmerExists = true;
+  const programmerExists = false;
 
   const handleProgrammerSubmit = (e: React.FormEvent) => {
     e.preventDefault();

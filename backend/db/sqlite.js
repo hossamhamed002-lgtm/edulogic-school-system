@@ -24,6 +24,34 @@ db.prepare(`
   ON members_users (school_code, username)
 `).run();
 
+db.prepare(`
+  CREATE TABLE IF NOT EXISTS developer_users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL UNIQUE,
+    password_hash TEXT NOT NULL,
+    role TEXT NOT NULL,
+    is_active INTEGER DEFAULT 1
+  )
+`).run();
+
+db.prepare(`
+  CREATE UNIQUE INDEX IF NOT EXISTS idx_developer_users_username
+  ON developer_users (username)
+`).run();
+
+const existingDev = db
+  .prepare(
+    `SELECT 1 FROM developer_users WHERE username = ? LIMIT 1`
+  )
+  .get('PRO-2025-ADMIN-MASTER');
+
+if (!existingDev) {
+  db.prepare(
+    `INSERT INTO developer_users (username, password_hash, role, is_active)
+     VALUES (?, ?, ?, ?)`
+  ).run('PRO-2025-ADMIN-MASTER', 'Dev123', 'DEVELOPER', 1);
+}
+
 const existingAdmin = db
   .prepare(
     `SELECT 1 FROM members_users WHERE school_code = ? AND username = ? LIMIT 1`

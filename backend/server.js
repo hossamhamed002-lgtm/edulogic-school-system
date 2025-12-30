@@ -423,12 +423,13 @@ app.get('/health', (_req, res) => {
 });
 
 // Protect all subsequent routes
+app.use('/dev', devLoginRouter);
+
 app.use(authJwt);
 app.use(rolePermissions);
 
 // Protected routers
 app.use(membersUsersRoutes);
-app.use('/dev', devLoginRouter);
 
 app.get('/school-info/:year', (req, res) => {
   try {

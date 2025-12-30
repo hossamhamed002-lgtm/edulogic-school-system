@@ -1,5 +1,5 @@
-import express from 'express';
 import cors from 'cors';
+import express from 'express';
 import 'dotenv/config';
 import Database from 'better-sqlite3';
 import jwt from 'jsonwebtoken';
@@ -20,16 +20,14 @@ const app = express();
 const PORT = process.env.PORT || 4001;
 const DB_PATH = process.env.DB_PATH || './school.db';
 
-const corsOptions = {
-  origin: 'https://edulogic-school-system.pages.dev',
+app.use(cors({
+  origin: ['https://edulogic-school-system.pages.dev'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
-};
+}));
 
-// Global CORS for Cloudflare Pages frontend (applied before any routes/auth)
-app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
+app.options('*', cors());
 app.use(express.json({ limit: '5mb' }));
 app.use('/api', rateLimit);
 

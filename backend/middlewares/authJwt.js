@@ -15,7 +15,12 @@ export default function authJwt(req, res, next) {
       schoolCode: decoded.schoolCode
     };
 
-    if (req.params?.schoolCode && req.user.schoolCode && req.user.schoolCode !== req.params.schoolCode) {
+    if (
+      req.params?.schoolCode &&
+      req.user.role?.toUpperCase() !== 'DEVELOPER' &&
+      req.user.schoolCode &&
+      req.user.schoolCode !== req.params.schoolCode
+    ) {
       return res.status(403).json({ message: 'Forbidden' });
     }
 

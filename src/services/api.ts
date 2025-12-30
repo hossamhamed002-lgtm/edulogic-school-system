@@ -1,4 +1,5 @@
-const API_BASE = import.meta.env.VITE_API_URL || '';
+export const API_BASE_URL = 'https://school-pay-pro.onrender.com';
+const API_BASE = API_BASE_URL;
 
 type RequestConfig = {
   method: 'GET' | 'POST';
@@ -6,12 +7,21 @@ type RequestConfig = {
   body?: string;
 };
 
-const requestInterceptors: Array<(config: RequestConfig) => RequestConfig> = [
+const requestInterceptors: Array<(config: RequestConfig & { url?: string }) => RequestConfig> = [
   (config) => {
-    const token = localStorage.getItem('token') || localStorage.getItem('auth_token');
-    if (!token) {
-      throw new Error('No auth token');
+    const devToken = localStorage.getItem('dev_token');
+    const userToken = localStorage.getItem('token') || localStorage.getItem('auth_token');
+    const token = devToken || userToken;
+    const isLogin =
+      config.url?.startsWith('/auth/login') ||
+      config.url?.startsWith('/dev/login');
+    const isOptions = config.method === 'OPTIONS';
+
+    // لا نضيف الهيدر في حالة عدم وجود توكن، أو طلبات الدخول، أو OPTIONS
+    if (!token || isLogin || isOptions) {
+      return { ...config, headers: { ...config.headers } };
     }
+
     return {
       ...config,
       headers: {
@@ -27,10 +37,14 @@ const applyInterceptors = (config: RequestConfig) =>
 
 const handleResponse = async (res: Response) => {
   if (res.status === 401) {
-    const hasToken =
+    const hasUserToken =
       !!localStorage.getItem('token') ||
       !!localStorage.getItem('auth_token');
-    if (hasToken) {
+    const hasDevToken = !!localStorage.getItem('dev_token');
+    if (hasDevToken) {
+      localStorage.removeItem('dev_token');
+      window.location.href = '/dev/login';
+    } else if (hasUserToken) {
       localStorage.removeItem('token');
       localStorage.removeItem('auth_token');
       localStorage.removeItem('auth_user');
@@ -49,12 +63,12 @@ const handleResponse = async (res: Response) => {
 export const apiGet = async (url: string) => {
   const baseConfig: RequestConfig = {
     method: 'GET',
-    headers: { 'Content-Type': 'application/json' }
+    headers: { 'Content-Type': 'application/json' },
+    url
   };
   const config = applyInterceptors(baseConfig);
   const res = await fetch(`${API_BASE}${url}`, {
-    ...config,
-    credentials: 'include'
+    ...config
   });
   return handleResponse(res);
 };
@@ -63,12 +77,12 @@ export const apiPost = async (url: string, body: any) => {
   const baseConfig: RequestConfig = {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body)
+    body: JSON.stringify(body),
+    url
   };
   const config = applyInterceptors(baseConfig);
   const res = await fetch(`${API_BASE}${url}`, {
-    ...config,
-    credentials: 'include'
+    ...config
   });
   return handleResponse(res);
 };

@@ -4,8 +4,11 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import App from './App';
 import ProtectedRoute from './src/auth/ProtectedRoute';
+import DevAuthGuard from './src/auth/DevAuthGuard';
 import Unauthorized from './src/pages/Unauthorized';
 import SelectSchool from './src/pages/SelectSchool';
+import DeveloperLogin from './src/pages/DeveloperLogin';
+import DeveloperDashboard from './src/pages/DeveloperDashboard';
 import { AppContextProvider } from './src/contexts/AppContext';
 import { AuthProvider } from './src/context/AuthContext';
 
@@ -46,6 +49,15 @@ root.render(
               }
             />
             <Route path="/login" element={<App />} />
+            <Route path="/dev/login" element={<DeveloperLogin />} />
+            <Route
+              path="/dev/dashboard"
+              element={
+                <DevAuthGuard>
+                  <DeveloperDashboard />
+                </DevAuthGuard>
+              }
+            />
             <Route path="/unauthorized" element={<Unauthorized />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

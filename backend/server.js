@@ -12,6 +12,7 @@ import authJwt from './middlewares/authJwt.js';
 import rolePermissions from './middlewares/rolePermissions.js';
 import devLoginRouter from './routes/dev/login.js';
 import { requireRole } from './middlewares/requireRole.js';
+import backupsRouter from './routes/core/backups.js';
 // import financeRoutes from './routes/finance/index.js';
 // import coreRoutes from './routes/core/index.js';
 
@@ -793,9 +794,7 @@ const otpTrustHandler = makeAcademicHandler('otp_device_trust');
 app.get('/security/otp-trust/:schoolCode', otpTrustHandler.get);
 app.post('/security/otp-trust/:schoolCode', otpTrustHandler.post);
 
-const backupsHandler = makeAcademicHandler('local_backups');
-app.get('/backups/:schoolCode', backupsHandler.get);
-app.post('/backups/:schoolCode', backupsHandler.post);
+app.use('/backups', backupsRouter);
 
 app.listen(PORT, () => {
   console.log(`Backend running on http://localhost:${PORT}`);

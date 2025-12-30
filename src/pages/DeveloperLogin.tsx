@@ -18,33 +18,20 @@ const DeveloperLogin: React.FC = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password })
       });
-      if (!res.ok) {
-        setError('بيانات المبرمج غير صحيحة');
+      if (res.status === 401 || !res.ok) {
+        setError('بيانات غير صحيحة');
         setLoading(false);
         return;
       }
       const data = await res.json();
       if (data?.token) {
-        localStorage.setItem('dev_token', data.token);
-        localStorage.setItem('dev_user_role', 'DEVELOPER');
-        // خزن التوكن أيضًا بنفس مفاتيح المستخدم العادي لضمان استخدامه في كل الطلبات
         localStorage.setItem('token', data.token);
-        localStorage.setItem('auth_token', data.token);
-        localStorage.setItem(
-          'auth_user',
-          JSON.stringify({
-            id: data.user?.id,
-            username: data.user?.username,
-            role: 'DEVELOPER',
-            scope: 'SYSTEM'
-          })
-        );
         window.location.href = '/dev/dashboard';
         return;
       }
-      setError('بيانات المبرمج غير صحيحة');
+      setError('بيانات غير صحيحة');
     } catch {
-      setError('بيانات المبرمج غير صحيحة');
+      setError('بيانات غير صحيحة');
     } finally {
       setLoading(false);
     }

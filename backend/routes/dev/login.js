@@ -52,4 +52,43 @@ router.post('/login', (req, res) => {
   }
 });
 
+// Impersonate a school as ADMIN (developer-only)
+router.post(
+  '/impersonate-school',
+  authJwt,
+  (req, res, next) => {
+    const role = (req.user?.role || '').toUpperCase();
+    if (role !== 'DEVELOPER') {
+      return res.status(403).json({ ok: false, message: 'Forbidden' });
+    }
+    next();
+  },
+  (req, res) => {
+    try {
+      const schoolCode = req.body?.schoolCode || req.body?.schoolId;
+      if (!schoolCode) {
+        return res.status(400).json({ ok: false, message: 'Missing schoolCode' });
+      }
+
+      const token = signToken({
+        userId: `DEV-IMPERSONATE-${schoolCode}`,
+        role: 'ADMIN',
+        schoolCode,
+        source: 'developer_impersonation'
+      });
+
+      return res.json({
+        ok: true,
+        token,
+        role: 'ADMIN',
+        schoolCode,
+        source: 'developer_impersonation'
+      });
+    } catch (err) {
+      console.error('POST /dev/impersonate-school error', err);
+      return res.status(500).json({ ok: false, message: 'Failed to impersonate school' });
+    }
+  }
+);
+
 export default router;

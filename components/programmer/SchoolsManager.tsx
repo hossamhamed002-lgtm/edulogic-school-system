@@ -185,24 +185,29 @@ const SchoolsManager: React.FC<{ store?: any }> = ({ store }) => {
     }
     // دخول مباشر عبر الـ API في حال عدم توفر السياق
     try {
-      const res = await fetch(`${API_BASE}/auth/login`, {
+      const res = await fetch(`${API_BASE}/dev/impersonate-school`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
         body: JSON.stringify({
-          schoolCode: school.code,
-          username: school.adminUsername,
-          password: school.adminPassword
+          schoolCode: school.code
         })
       });
       const data = await res.json();
-      if (res.ok && data?.token) {
+      if (res.ok && data?.ok && data?.token) {
         localStorage.setItem('token', data.token);
         localStorage.setItem('auth_token', data.token);
-        if (data.user) localStorage.setItem('auth_user', JSON.stringify(data.user));
+        localStorage.setItem('dev_token', data.token);
+        const userPayload = {
+          username: 'developer',
+          role: data.role || 'ADMIN',
+          schoolCode: data.schoolCode || school.code,
+          source: data.source || 'developer_impersonation'
+        };
+        localStorage.setItem('auth_user', JSON.stringify(userPayload));
         window.location.href = '/';
-      } else {
-        alert(data?.error || data?.message || (isRtl ? 'تعذر تسجيل الدخول.' : 'Login failed.'));
+        return;
       }
+      alert(data?.error || data?.message || (isRtl ? 'تعذر تسجيل الدخول.' : 'Login failed.'));
     } catch {
       alert(isRtl ? 'تعذر الاتصال بالخادم.' : 'Could not reach server.');
     }

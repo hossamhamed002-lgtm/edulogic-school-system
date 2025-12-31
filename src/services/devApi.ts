@@ -39,7 +39,7 @@ const handleResponse = async (res: Response) => {
     if (hasToken) {
       localStorage.removeItem('auth_token');
       localStorage.removeItem('auth_user');
-      window.location.href = '/dev/login';
+      window.location.href = '/developer/login';
     }
     throw new Error('Unauthorized');
   }

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 type Props = {
@@ -8,10 +8,8 @@ type Props = {
 };
 
 const ProtectedRoute: React.FC<Props> = ({ children, allowedRoles }) => {
-  const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
-  if (pathname.startsWith('/dev')) {
-    return children;
-  }
+  const location = useLocation();
+  if (location.pathname.startsWith('/developer')) return children;
 
   const { isAuthenticated, user } = useAuth();
   const token = localStorage.getItem('token') || localStorage.getItem('auth_token');

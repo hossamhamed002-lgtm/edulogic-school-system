@@ -1,9 +1,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 
-const links = [
-  { to: '/dev/dashboard', label: 'لوحة المبرمج' }
-];
+const links = [{ to: '/developer/dashboard', label: 'لوحة المبرمج' }];
 
 const DeveloperSidebar: React.FC = () => {
   return (

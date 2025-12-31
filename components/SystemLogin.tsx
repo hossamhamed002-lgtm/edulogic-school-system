@@ -88,7 +88,7 @@ const SystemLogin: React.FC<SystemLoginProps> = ({
   const handleProgrammerSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setProgrammerError('');
-    window.location.href = '/dev/login';
+    window.location.href = '/developer/login';
   };
 
   const handleOtpVerify = async (code: string) => {

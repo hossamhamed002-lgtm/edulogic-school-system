@@ -37,7 +37,7 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const path = window.location.pathname;
     const isSelect = path === '/select-school';
     const isLogin = path === '/login';
-    const isDev = path.startsWith('/dev');
+    const isDev = path.startsWith('/developer');
 
     if (isDev) {
       setReady(true);
@@ -66,7 +66,7 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     !ready &&
     window.location.pathname !== '/select-school' &&
     window.location.pathname !== '/login' &&
-    !window.location.pathname.startsWith('/dev')
+    !window.location.pathname.startsWith('/developer')
   )
     return null;
 

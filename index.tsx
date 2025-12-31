@@ -25,22 +25,19 @@ root.render(
       <AuthProvider>
         <AppContextProvider>
           <Routes>
+            <Route path="/developer/login" element={<DeveloperLogin />} />
             <Route
-              path="/"
+              path="/developer/*"
               element={
-                <ProtectedRoute>
-                  <App />
-                </ProtectedRoute>
+                <DevAuthGuard>
+                  <DeveloperLayout />
+                </DevAuthGuard>
               }
-            />
-            <Route
-              path="/admin"
-              element={
-                <ProtectedRoute allowedRoles={['DEVELOPER']}>
-                  <App />
-                </ProtectedRoute>
-              }
-            />
+            >
+              <Route index element={<DeveloperDashboard />} />
+              <Route path="dashboard" element={<DeveloperDashboard />} />
+            </Route>
+            <Route path="/login" element={<App />} />
             <Route
               path="/select-school"
               element={
@@ -49,18 +46,14 @@ root.render(
                 </ProtectedRoute>
               }
             />
-            <Route path="/login" element={<App />} />
-            <Route path="/dev/login" element={<DeveloperLogin />} />
             <Route
-              path="/dev"
+              path="/*"
               element={
-                <DevAuthGuard>
-                  <DeveloperLayout />
-                </DevAuthGuard>
+                <ProtectedRoute>
+                  <App />
+                </ProtectedRoute>
               }
-            >
-              <Route path="dashboard" element={<DeveloperDashboard />} />
-            </Route>
+            />
             <Route path="/unauthorized" element={<Unauthorized />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

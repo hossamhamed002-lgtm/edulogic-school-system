@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { API_BASE_URL } from '../services/api';
 
 const API_BASE = API_BASE_URL;
@@ -8,6 +9,7 @@ const DeveloperLogin: React.FC = () => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,7 +30,7 @@ const DeveloperLogin: React.FC = () => {
       if (data?.token) {
         localStorage.setItem('auth_token', data.token);
         localStorage.setItem('auth_user', JSON.stringify(data.user || {}));
-        window.location.href = '/dev/dashboard';
+        navigate('/developer', { replace: true });
         return;
       }
       setError('بيانات غير صحيحة');

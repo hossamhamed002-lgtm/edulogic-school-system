@@ -20,31 +20,27 @@ const app = express();
 const PORT = process.env.PORT || 4001;
 const DB_PATH = process.env.DB_PATH || './school.db';
 
-const corsOptions = {
-  origin: [
-    'https://edulogic-school-system.pages.dev',
-    'http://localhost:5173'
-  ],
-  credentials: true,
-  methods: ['GET','POST','PUT','DELETE','OPTIONS'],
-  allowedHeaders: ['Content-Type','Authorization']
-};
+const allowedOrigins = [
+  'https://edulogic-school-system.pages.dev',
+  'http://localhost:5173'
+];
 
-app.use(cors(corsOptions));
-app.use(express.json({ limit: '5mb' }));
-app.options('*', cors(corsOptions));
-app.use((req, res, next) => {
-  if (req.method === 'OPTIONS') {
-    res.set({
-      'Access-Control-Allow-Origin': corsOptions.origin.includes(req.headers.origin || '') ? req.headers.origin : corsOptions.origin[0],
-      'Access-Control-Allow-Headers': corsOptions.allowedHeaders.join(','),
-      'Access-Control-Allow-Methods': corsOptions.methods.join(','),
-      'Access-Control-Allow-Credentials': 'true'
-    });
-    return res.sendStatus(204);
-  }
-  next();
+app.use(cors({
+  origin: allowedOrigins,
+  methods: ['GET','POST','PUT','DELETE','OPTIONS'],
+  allowedHeaders: ['Content-Type','Authorization'],
+  credentials: true
+}));
+
+app.options('*', (req, res) => {
+  res.header('Access-Control-Allow-Origin', req.headers.origin);
+  res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  return res.sendStatus(200);
 });
+
+app.use(express.json({ limit: '5mb' }));
 
 app.use('/api', rateLimit);
 
@@ -813,4 +809,5 @@ app.use('/backups', backupsRouter);
 
 app.listen(PORT, () => {
   console.log(`Backend running on http://localhost:${PORT}`);
+  console.log('CORS ENABLED FOR DEVELOPER LOGIN');
 });

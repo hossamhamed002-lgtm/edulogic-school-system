@@ -1,5 +1,21 @@
-import cors from 'cors';
 import express from 'express';
+import cors from 'cors';
+
+const app = express();
+
+// 🔥 FORCE CORS FIRST
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+});
+
+app.use(express.json());
 import 'dotenv/config';
 import Database from 'better-sqlite3';
 import jwt from 'jsonwebtoken';
@@ -16,24 +32,8 @@ import backupsRouter from './routes/core/backups.js';
 // import financeRoutes from './routes/finance/index.js';
 // import coreRoutes from './routes/core/index.js';
 
-const app = express();
 const PORT = process.env.PORT || 4001;
 const DB_PATH = process.env.DB_PATH || './school.db';
-
-app.use(cors({
-  origin: ['https://edulogic-school-system.pages.dev'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
-}));
-
-app.options('*', cors({
-  origin: ['https://edulogic-school-system.pages.dev'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
-}));
-app.use(express.json({ limit: '5mb' }));
 app.use('/api', rateLimit);
 
 const db = new Database(DB_PATH);

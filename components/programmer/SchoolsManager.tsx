@@ -183,7 +183,7 @@ const SchoolsManager: React.FC<{ store?: any }> = ({ store }) => {
     if (result && result.ok) {
       return;
     }
-    // دخول مباشر عبر الـ API في حال عدم توفر السياق
+    // دخول مباشر عبر الـ API في حال عدم توفر سياق المدارس
     try {
       const res = await fetch(`${API_BASE}/dev/impersonate-school`, {
         method: 'POST',
@@ -194,17 +194,21 @@ const SchoolsManager: React.FC<{ store?: any }> = ({ store }) => {
       });
       const data = await res.json();
       if (res.ok && data?.ok && data?.token) {
+        // تحديث التخزين بالحساب المنتحل (ADMIN)
         localStorage.setItem('token', data.token);
         localStorage.setItem('auth_token', data.token);
         localStorage.setItem('dev_token', data.token);
         const userPayload = {
           username: 'developer',
-          role: data.role || 'ADMIN',
+          role: (data.role || 'ADMIN').toUpperCase(),
           schoolCode: data.schoolCode || school.code,
-          source: data.source || 'developer_impersonation'
+          source: data.source || 'dev_impersonation'
         };
         localStorage.setItem('auth_user', JSON.stringify(userPayload));
-        window.location.href = '/';
+        // مسح أي حالة قديمة للوحة المبرمج
+        localStorage.removeItem('dev_role');
+        // توجيه صريح إلى لوحة المدرسة
+        window.location.href = '/dashboard';
         return;
       }
       alert(data?.error || data?.message || (isRtl ? 'تعذر تسجيل الدخول.' : 'Login failed.'));

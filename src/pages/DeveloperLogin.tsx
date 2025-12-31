@@ -1,6 +1,6 @@
 export default function DeveloperLogin() {
   const login = async () => {
-    const res = await fetch("https://school-pay-pro.onrender.com/dev/login", {
+    const res = await fetch("https://schoolpaypro.onrender.com/dev/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

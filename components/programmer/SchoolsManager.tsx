@@ -186,7 +186,7 @@ const SchoolsManager: React.FC<{ store?: any }> = ({ store }) => {
     // دخول مباشر عبر الـ API في حال عدم توفر سياق المدارس
     try {
       const developerToken = localStorage.getItem('dev_token');
-      if (!token) {
+      if (!developerToken) {
         alert(isRtl ? 'يجب تسجيل دخول المبرمج أولاً.' : 'Developer login required.');
         return;
       }

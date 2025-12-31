@@ -16,25 +16,36 @@ import backupsRouter from './routes/core/backups.js';
 // import coreRoutes from './routes/core/index.js';
 
 const app = express();
-const PORT = process.env.PORT || 4001;
+const PORT = process.env.PORT;
+if (!PORT) {
+  console.error('❌ PORT is undefined — Render will not route traffic');
+}
 const DB_PATH = process.env.DB_PATH || './school.db';
 
 /* ===== FORCE OPTIONS FIRST ===== */
 app.options("*", (req, res) => {
-  res.header("Access-Control-Allow-Origin", req.headers.origin || "*");
-  res.header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
-  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  res.header("Access-Control-Allow-Credentials", "true");
+  res.setHeader("Access-Control-Allow-Origin", req.headers.origin || "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.setHeader("Access-Control-Allow-Credentials", "true");
   return res.sendStatus(200);
 });
 
 /* ===== CORS FOR ALL REQUESTS ===== */
 app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", req.headers.origin || "*");
-  res.header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
-  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  res.header("Access-Control-Allow-Credentials", "true");
+  res.setHeader("Access-Control-Allow-Origin", req.headers.origin || "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.setHeader("Access-Control-Allow-Credentials", "true");
   next();
+});
+
+app.get("/health", (req, res) => {
+  res.status(200).json({ status: "ok", source: "express" });
+});
+
+app.post("/dev/login", (req, res) => {
+  res.json({ ok: true, reached: true });
 });
 
 app.use(express.json({ limit: '5mb' }));
@@ -805,6 +816,6 @@ app.post('/security/otp-trust/:schoolCode', otpTrustHandler.post);
 app.use('/backups', backupsRouter);
 
 app.listen(PORT, "0.0.0.0", () => {
-  console.log("SERVER LISTENING ON", PORT);
+  console.log("🚀 EXPRESS LISTENING ON PORT", PORT);
   console.log("CORS + OPTIONS HANDLER ACTIVE");
 });

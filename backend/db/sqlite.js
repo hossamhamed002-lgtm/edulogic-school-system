@@ -39,6 +39,99 @@ db.prepare(`
   ON developer_users (username)
 `).run();
 
+// الأكاديمي: جداول مرنة تخزن JSON لكل مدرسة مع أعمدة مساعدة لتجنب أخطاء 500 عند عدم وجود بيانات
+db.prepare(`
+  CREATE TABLE IF NOT EXISTS academic_years (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    school_code TEXT NOT NULL,
+    name TEXT,
+    start_date TEXT,
+    end_date TEXT,
+    is_active INTEGER DEFAULT 0
+  )
+`).run();
+
+db.prepare(`
+  CREATE TABLE IF NOT EXISTS academic_stages (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    schoolCode TEXT NOT NULL UNIQUE,
+    data TEXT,
+    name TEXT,
+    order_index INTEGER DEFAULT 0
+  )
+`).run();
+
+db.prepare(`
+  CREATE TABLE IF NOT EXISTS academic_grades (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    schoolCode TEXT NOT NULL UNIQUE,
+    data TEXT,
+    name TEXT,
+    order_index INTEGER DEFAULT 0,
+    stage_id INTEGER
+  )
+`).run();
+
+db.prepare(`
+  CREATE TABLE IF NOT EXISTS academic_classes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    schoolCode TEXT NOT NULL UNIQUE,
+    data TEXT,
+    name TEXT,
+    grade_id INTEGER
+  )
+`).run();
+
+// المالية: جداول لكل مدرسة
+db.prepare(`
+  CREATE TABLE IF NOT EXISTS finance_accounts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    school_code TEXT NOT NULL,
+    code TEXT,
+    name TEXT,
+    type TEXT,
+    parent_id INTEGER
+  )
+`).run();
+
+db.prepare(`
+  CREATE TABLE IF NOT EXISTS finance_fee_items (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    school_code TEXT NOT NULL,
+    name TEXT,
+    amount REAL DEFAULT 0
+  )
+`).run();
+
+db.prepare(`
+  CREATE TABLE IF NOT EXISTS finance_fee_structure (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    school_code TEXT NOT NULL,
+    stage_id INTEGER,
+    grade_id INTEGER,
+    total_amount REAL DEFAULT 0
+  )
+`).run();
+
+db.prepare(`
+  CREATE TABLE IF NOT EXISTS finance_journal (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    school_code TEXT NOT NULL,
+    entry_date TEXT,
+    description TEXT
+  )
+`).run();
+
+db.prepare(`
+  CREATE TABLE IF NOT EXISTS finance_receipts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    school_code TEXT NOT NULL,
+    receipt_date TEXT,
+    amount REAL DEFAULT 0,
+    description TEXT
+  )
+`).run();
+
 const existingDev = db
   .prepare(
     `SELECT 1 FROM developer_users WHERE username = ? LIMIT 1`

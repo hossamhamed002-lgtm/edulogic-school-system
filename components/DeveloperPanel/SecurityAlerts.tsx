@@ -4,8 +4,9 @@ import { getAuditLogs } from '../../src/stores/auditLogStore';
 
 const SecurityAlerts: React.FC = () => {
   const alerts = useMemo(() => {
-    const logs = getAuditLogs().filter((l) => l.severity === 'HIGH');
-    return logs.slice(-20).reverse();
+    const logs = getAuditLogs();
+    if (!Array.isArray(logs)) return [];
+    return logs.filter((l) => l.severity === 'HIGH').slice(-20).reverse();
   }, []);
 
   return (

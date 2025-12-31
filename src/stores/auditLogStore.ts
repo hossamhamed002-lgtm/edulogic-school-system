@@ -50,6 +50,15 @@ const loadAuditLogs = async (schoolId?: string): Promise<AuditLogEntry[]> => {
   } catch {
     /* ignore */
   }
+  const localRaw = typeof localStorage !== 'undefined' ? localStorage.getItem(STORAGE_KEY) : null;
+  if (localRaw) {
+    try {
+      const parsed = JSON.parse(localRaw);
+      if (Array.isArray(parsed)) return parsed as AuditLogEntry[];
+    } catch {
+      return [];
+    }
+  }
   return [];
 };
 
@@ -65,6 +74,13 @@ const persistAuditLogs = async (entries: AuditLogEntry[], schoolId?: string) => 
     }
   } catch {
     /* ignore */
+  }
+  if (typeof localStorage !== 'undefined') {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(trimmed));
+    } catch {
+      /* ignore */
+    }
   }
 };
 

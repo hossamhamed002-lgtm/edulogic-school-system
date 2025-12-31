@@ -217,6 +217,9 @@ const SchoolsManager: React.FC<{ store?: any }> = ({ store }) => {
           academicYearName: 'عام دراسي افتراضي'
         };
         localStorage.setItem('selected_academic_year', JSON.stringify(selection));
+        // ضبط كود المدرسة النشط وتعطيل سياق المبرمج لضمان مزامنة المتجر مع المدرسة
+        localStorage.setItem('EDULOGIC_ACTIVE_SCHOOL_CODE_V1', school.code);
+        localStorage.removeItem('EDULOGIC_PROGRAMMER_CONTEXT_V1');
         // توجيه صريح إلى لوحة المدرسة
         window.location.href = '/dashboard';
         return;

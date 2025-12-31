@@ -20,35 +20,25 @@ const app = express();
 const PORT = process.env.PORT || 4001;
 const DB_PATH = process.env.DB_PATH || './school.db';
 
-app.use(cors({
+const corsOptions = {
   origin: [
-    'https://edulogic-school-system.pages.dev'
+    'https://edulogic-school-system.pages.dev',
+    'http://localhost:5173'
   ],
   credentials: true,
   methods: ['GET','POST','PUT','DELETE','OPTIONS'],
   allowedHeaders: ['Content-Type','Authorization']
-}));
-app.options('*', cors({
-  origin: [
-    'https://edulogic-school-system.pages.dev'
-  ],
-  credentials: true,
-  methods: ['GET','POST','PUT','DELETE','OPTIONS'],
-  allowedHeaders: ['Content-Type','Authorization']
-}));
+};
 
+app.use(cors(corsOptions));
 app.use(express.json({ limit: '5mb' }));
-app.use('/api', rateLimit);
-
-const devCors = cors({
-  origin: [
-    'https://edulogic-school-system.pages.dev'
-  ],
-  credentials: true,
-  methods: ['GET','POST','PUT','DELETE','OPTIONS'],
-  allowedHeaders: ['Content-Type','Authorization']
+app.options('*', cors(corsOptions), (_req, res) => res.sendStatus(204));
+app.use((req, res, next) => {
+  if (req.method === 'OPTIONS') return res.sendStatus(204);
+  next();
 });
-app.options('/dev/*', devCors);
+
+app.use('/api', rateLimit);
 
 const db = new Database(DB_PATH);
 
@@ -441,7 +431,7 @@ app.get('/health', (_req, res) => {
 });
 
 // Developer routes (public login + protected subs)
-app.use('/dev', devCors, devLoginRouter);
+app.use('/dev', devLoginRouter);
 
 app.use(authJwt);
 app.use(rolePermissions);

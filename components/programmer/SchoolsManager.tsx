@@ -212,6 +212,13 @@ const SchoolsManager: React.FC<{ store?: any }> = ({ store }) => {
         localStorage.setItem('auth_user', JSON.stringify(userPayload));
         // مسح أي حالة قديمة للوحة المبرمج
         localStorage.removeItem('dev_role');
+        // تعيين اختيار العام الدراسي تلقائياً لتجاوز شاشة اختيار المدرسة
+        const selection = {
+          schoolCode: school.code,
+          academicYearId: 'AUTO-YEAR',
+          academicYearName: 'عام دراسي افتراضي'
+        };
+        localStorage.setItem('selected_academic_year', JSON.stringify(selection));
         // توجيه صريح إلى لوحة المدرسة
         window.location.href = '/dashboard';
         return;

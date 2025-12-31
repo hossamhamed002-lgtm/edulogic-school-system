@@ -804,7 +804,7 @@ app.post('/security/otp-trust/:schoolCode', otpTrustHandler.post);
 
 app.use('/backups', backupsRouter);
 
-app.listen(PORT, () => {
-  console.log(`Backend running on http://localhost:${PORT}`);
-  console.log('CORS ENABLED FOR DEVELOPER LOGIN');
+app.listen(PORT, "0.0.0.0", () => {
+  console.log("SERVER LISTENING ON", PORT);
+  console.log("CORS + OPTIONS HANDLER ACTIVE");
 });

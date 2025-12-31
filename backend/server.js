@@ -32,8 +32,15 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 app.use(express.json({ limit: '5mb' }));
+app.options('*', cors(corsOptions));
 app.use((req, res, next) => {
   if (req.method === 'OPTIONS') {
+    res.set({
+      'Access-Control-Allow-Origin': corsOptions.origin.includes(req.headers.origin || '') ? req.headers.origin : corsOptions.origin[0],
+      'Access-Control-Allow-Headers': corsOptions.allowedHeaders.join(','),
+      'Access-Control-Allow-Methods': corsOptions.methods.join(','),
+      'Access-Control-Allow-Credentials': 'true'
+    });
     return res.sendStatus(204);
   }
   next();

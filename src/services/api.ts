@@ -1,4 +1,4 @@
-export const API_BASE_URL = 'https://school-pay-pro.onrender.com';
+export const API_BASE_URL = '/api';
 const API_BASE = API_BASE_URL;
 
 type RequestConfig = {

@@ -45,33 +45,33 @@ const SystemLogin: React.FC<SystemLoginProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    const result = onLogin(schoolCode, username, password);
-    if (result.otpRequired && result.sessionId && result.expiresAt) {
-      setOtpStep({ sessionId: result.sessionId, expiresAt: result.expiresAt, attemptsLeft: result.attemptsLeft || otpSettings.maxOtpAttempts });
-      return;
-    }
-    if (!result.ok) {
-      setError(result.error || 'بيانات الدخول غير صحيحة');
-      return;
-    }
+    const scopedCode = schoolCode.trim().toUpperCase();
 
     try {
       const res = await fetch(`${API_BASE}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ schoolCode, username, password }),
+        body: JSON.stringify({ schoolCode: scopedCode, username, password }),
         credentials: 'include'
       });
-      if (!res.ok) {
-        setError('بيانات الدخول غير صحيحة');
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data?.token) {
+        setError(data?.message || 'بيانات الدخول غير صحيحة');
         return;
       }
-      const data = await res.json();
-      if (data?.token) {
-        localStorage.setItem('auth_token', data.token);
-        localStorage.setItem('auth_user', JSON.stringify(data.user || {}));
-      }
-      window.location.href = '/';
+
+      localStorage.setItem('auth_token', data.token);
+      localStorage.setItem('auth_user', JSON.stringify(data.user || {}));
+      localStorage.setItem('token', data.token);
+      // حفظ اختيار المدرسة/العام لتجاوز شاشة الاختيار
+      const selection = {
+        schoolCode: scopedCode,
+        academicYearId: 'AUTO-YEAR',
+        academicYearName: 'عام دراسي افتراضي'
+      };
+      localStorage.setItem('selected_academic_year', JSON.stringify(selection));
+
+      window.location.href = '/dashboard';
     } catch {
       setError('بيانات الدخول غير صحيحة');
     }

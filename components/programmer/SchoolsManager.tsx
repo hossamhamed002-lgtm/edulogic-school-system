@@ -7,7 +7,7 @@ import { API_BASE_URL } from '../../src/services/api';
 const API_BASE = API_BASE_URL;
 
 const authHeaders = () => {
-  const token = localStorage.getItem('dev_token');
+  const token = localStorage.getItem('dev_token') || localStorage.getItem('auth_token');
   return token ? { Authorization: `Bearer ${token}` } : {};
 };
 
@@ -185,14 +185,14 @@ const SchoolsManager: React.FC<{ store?: any }> = ({ store }) => {
     }
     // دخول مباشر عبر الـ API في حال عدم توفر سياق المدارس
     try {
-      const token = localStorage.getItem('dev_token');
+      const developerToken = localStorage.getItem('dev_token');
       if (!token) {
         alert(isRtl ? 'يجب تسجيل دخول المبرمج أولاً.' : 'Developer login required.');
         return;
       }
       const res = await fetch(`${API_BASE}/dev/impersonate-school`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${developerToken}` },
         body: JSON.stringify({
           schoolCode: school.code
         })
@@ -202,7 +202,6 @@ const SchoolsManager: React.FC<{ store?: any }> = ({ store }) => {
         // تحديث التخزين بالحساب المنتحل (ADMIN)
         localStorage.setItem('token', data.token);
         localStorage.setItem('auth_token', data.token);
-        localStorage.setItem('dev_token', data.token);
         const userPayload = {
           username: 'developer',
           role: (data.role || 'ADMIN').toUpperCase(),
@@ -210,8 +209,7 @@ const SchoolsManager: React.FC<{ store?: any }> = ({ store }) => {
           source: data.source || 'dev_impersonation'
         };
         localStorage.setItem('auth_user', JSON.stringify(userPayload));
-        // مسح أي حالة قديمة للوحة المبرمج
-        localStorage.removeItem('dev_role');
+        // احتفظ بتوكن المبرمج كما هو للاستخدام اللاحق
         // تعيين اختيار العام الدراسي تلقائياً لتجاوز شاشة اختيار المدرسة
         const selection = {
           schoolCode: school.code,

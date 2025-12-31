@@ -7,7 +7,7 @@ import { API_BASE_URL } from '../../src/services/api';
 const API_BASE = API_BASE_URL;
 
 const authHeaders = () => {
-  const token = localStorage.getItem('dev_token');
+  const token = localStorage.getItem('dev_token') || localStorage.getItem('auth_token');
   return token ? { Authorization: `Bearer ${token}` } : {};
 };
 
@@ -185,6 +185,11 @@ const SchoolsManager: React.FC<{ store?: any }> = ({ store }) => {
     }
     // دخول مباشر عبر الـ API في حال عدم توفر سياق المدارس
     try {
+      const token = localStorage.getItem('dev_token') || localStorage.getItem('auth_token');
+      if (!token) {
+        alert(isRtl ? 'يجب تسجيل دخول المبرمج أولاً.' : 'Developer login required.');
+        return;
+      }
       const res = await fetch(`${API_BASE}/dev/impersonate-school`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...authHeaders() },

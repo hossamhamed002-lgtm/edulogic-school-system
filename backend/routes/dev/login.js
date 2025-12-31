@@ -80,6 +80,11 @@ router.post('/login', (req, res) => {
 
 // Impersonate a school as ADMIN (developer-only)
 router.post('/impersonate-school', devAuthOnly, (req, res) => {
+  // CORS headers for this endpoint
+  res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
   try {
     const schoolCode = req.body?.schoolCode || req.body?.schoolId;
     if (!schoolCode) {

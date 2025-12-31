@@ -4,6 +4,16 @@ import { requireRole } from '../../middlewares/requireRole.js';
 
 const router = Router();
 
+// Ensure CORS headers for this router (defensive)
+router.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  if (req.method === 'OPTIONS') return res.sendStatus(200);
+  next();
+});
+
 // In-memory placeholder storage to avoid 404/401 while keeping developer scope enforced
 const memoryStore = new Map();
 

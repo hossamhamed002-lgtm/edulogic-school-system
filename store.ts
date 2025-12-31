@@ -12,6 +12,14 @@ import { API_BASE_URL } from './src/services/api';
 
 const API_BASE = API_BASE_URL;
 
+const authHeaders = (json = false) => {
+  const token = localStorage.getItem('auth_token');
+  const headers: Record<string, string> = {};
+  if (json) headers['Content-Type'] = 'application/json';
+  if (token) headers.Authorization = `Bearer ${token}`;
+  return headers;
+};
+
 const LANG_KEY = 'EDULOGIC_LANG_V2';
 const YEAR_KEY = 'EDULOGIC_WORKING_YEAR_V2';
 const SCHOOL_CODE_KEY = 'EDULOGIC_ACTIVE_SCHOOL_CODE_V1';
@@ -462,7 +470,9 @@ export const useStore = () => {
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch(`${API_BASE}/employees/${encodeURIComponent(activeSchoolCode)}`);
+        const res = await fetch(`${API_BASE}/employees/${encodeURIComponent(activeSchoolCode)}`, {
+          headers: authHeaders()
+        });
         if (!res.ok) return;
         const data = await res.json();
         if (!cancelled && Array.isArray(data)) {
@@ -483,7 +493,7 @@ export const useStore = () => {
       try {
         await fetch(`${API_BASE}/employees/${encodeURIComponent(activeSchoolCode)}`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: authHeaders(true),
           body: JSON.stringify(db.employees || [])
         });
       } catch (err) {
@@ -508,10 +518,10 @@ export const useStore = () => {
     (async () => {
       try {
         const [yearsRes, stagesRes, gradesRes, classesRes] = await Promise.all([
-          fetch(`${API_BASE}/academic/years/${encodeURIComponent(activeSchoolCode)}`),
-          fetch(`${API_BASE}/academic/stages/${encodeURIComponent(activeSchoolCode)}`),
-          fetch(`${API_BASE}/academic/grades/${encodeURIComponent(activeSchoolCode)}`),
-          fetch(`${API_BASE}/academic/classes/${encodeURIComponent(activeSchoolCode)}`)
+          fetch(`${API_BASE}/academic/years/${encodeURIComponent(activeSchoolCode)}`, { headers: authHeaders() }),
+          fetch(`${API_BASE}/academic/stages/${encodeURIComponent(activeSchoolCode)}`, { headers: authHeaders() }),
+          fetch(`${API_BASE}/academic/grades/${encodeURIComponent(activeSchoolCode)}`, { headers: authHeaders() }),
+          fetch(`${API_BASE}/academic/classes/${encodeURIComponent(activeSchoolCode)}`, { headers: authHeaders() })
         ]);
         const [yearsData, stagesData, gradesData, classesData] = await Promise.all([
           yearsRes.ok ? yearsRes.json() : [],
@@ -544,22 +554,22 @@ export const useStore = () => {
         await Promise.all([
           fetch(`${API_BASE}/academic/years/${encodeURIComponent(activeSchoolCode)}`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: authHeaders(true),
             body: JSON.stringify(db.years || [])
           }),
           fetch(`${API_BASE}/academic/stages/${encodeURIComponent(activeSchoolCode)}`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: authHeaders(true),
             body: JSON.stringify(db.stages || [])
           }),
           fetch(`${API_BASE}/academic/grades/${encodeURIComponent(activeSchoolCode)}`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: authHeaders(true),
             body: JSON.stringify(db.grades || [])
           }),
           fetch(`${API_BASE}/academic/classes/${encodeURIComponent(activeSchoolCode)}`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: authHeaders(true),
             body: JSON.stringify(db.classes || [])
           })
         ]);
@@ -576,8 +586,8 @@ export const useStore = () => {
     (async () => {
       try {
         const [receiptsRes, journalRes] = await Promise.all([
-          fetch(`${API_BASE}/finance/receipts/${encodeURIComponent(activeSchoolCode)}`),
-          fetch(`${API_BASE}/finance/journal/${encodeURIComponent(activeSchoolCode)}`)
+          fetch(`${API_BASE}/finance/receipts/${encodeURIComponent(activeSchoolCode)}`, { headers: authHeaders() }),
+          fetch(`${API_BASE}/finance/journal/${encodeURIComponent(activeSchoolCode)}`, { headers: authHeaders() })
         ]);
         const [receiptsData, journalData] = await Promise.all([
           receiptsRes.ok ? receiptsRes.json() : [],
@@ -606,12 +616,12 @@ export const useStore = () => {
         await Promise.all([
           fetch(`${API_BASE}/finance/receipts/${encodeURIComponent(activeSchoolCode)}`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: authHeaders(true),
             body: JSON.stringify(db.receipts || [])
           }),
           fetch(`${API_BASE}/finance/journal/${encodeURIComponent(activeSchoolCode)}`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: authHeaders(true),
             body: JSON.stringify(db.journalEntries || [])
           })
         ]);
@@ -634,11 +644,11 @@ export const useStore = () => {
           feeItemsRes,
           feeStructureRes
         ] = await Promise.all([
-          fetch(`${API_BASE}/finance/accounts/${encodeURIComponent(activeSchoolCode)}`),
-          fetch(`${API_BASE}/finance/banks/${encodeURIComponent(activeSchoolCode)}`),
-          fetch(`${API_BASE}/finance/suppliers/${encodeURIComponent(activeSchoolCode)}`),
-          fetch(`${API_BASE}/finance/fee-items/${encodeURIComponent(activeSchoolCode)}`),
-          fetch(`${API_BASE}/finance/fee-structure/${encodeURIComponent(activeSchoolCode)}`)
+          fetch(`${API_BASE}/finance/accounts/${encodeURIComponent(activeSchoolCode)}`, { headers: authHeaders() }),
+          fetch(`${API_BASE}/finance/banks/${encodeURIComponent(activeSchoolCode)}`, { headers: authHeaders() }),
+          fetch(`${API_BASE}/finance/suppliers/${encodeURIComponent(activeSchoolCode)}`, { headers: authHeaders() }),
+          fetch(`${API_BASE}/finance/fee-items/${encodeURIComponent(activeSchoolCode)}`, { headers: authHeaders() }),
+          fetch(`${API_BASE}/finance/fee-structure/${encodeURIComponent(activeSchoolCode)}`, { headers: authHeaders() })
         ]);
         const [
           accountsData,
@@ -679,27 +689,27 @@ export const useStore = () => {
         await Promise.all([
           fetch(`${API_BASE}/finance/accounts/${encodeURIComponent(activeSchoolCode)}`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: authHeaders(true),
             body: JSON.stringify(db.accounts || [])
           }),
           fetch(`${API_BASE}/finance/banks/${encodeURIComponent(activeSchoolCode)}`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: authHeaders(true),
             body: JSON.stringify(db.banks || [])
           }),
           fetch(`${API_BASE}/finance/suppliers/${encodeURIComponent(activeSchoolCode)}`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: authHeaders(true),
             body: JSON.stringify(db.suppliers || [])
           }),
           fetch(`${API_BASE}/finance/fee-items/${encodeURIComponent(activeSchoolCode)}`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: authHeaders(true),
             body: JSON.stringify(db.feeItems || [])
           }),
           fetch(`${API_BASE}/finance/fee-structure/${encodeURIComponent(activeSchoolCode)}`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: authHeaders(true),
             body: JSON.stringify(db.feeStructure || [])
           })
         ]);
@@ -716,8 +726,8 @@ export const useStore = () => {
     (async () => {
       try {
         const [usersRes, auditRes] = await Promise.all([
-          fetch(`${API_BASE}/members/users/${encodeURIComponent(activeSchoolCode)}`),
-          fetch(`${API_BASE}/audit/logs/${encodeURIComponent(activeSchoolCode)}`)
+          fetch(`${API_BASE}/members/users/${encodeURIComponent(activeSchoolCode)}`, { headers: authHeaders() }),
+          fetch(`${API_BASE}/audit/logs/${encodeURIComponent(activeSchoolCode)}`, { headers: authHeaders() })
         ]);
         const [usersData, auditData] = await Promise.all([
           usersRes.ok ? usersRes.json() : [],
@@ -746,12 +756,12 @@ export const useStore = () => {
         await Promise.all([
           fetch(`${API_BASE}/members/users/${encodeURIComponent(activeSchoolCode)}`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: authHeaders(true),
             body: JSON.stringify(db.users || [])
           }),
           fetch(`${API_BASE}/audit/logs/${encodeURIComponent(activeSchoolCode)}`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: authHeaders(true),
             body: JSON.stringify(db.auditLogs || [])
           })
         ]);
@@ -768,9 +778,9 @@ export const useStore = () => {
     (async () => {
       try {
         const [schoolsRes, parentsRes, rulesRes] = await Promise.all([
-          fetch(`${API_BASE}/schools/${encodeURIComponent(activeSchoolCode)}`),
-          fetch(`${API_BASE}/members/parents/${encodeURIComponent(activeSchoolCode)}`),
-          fetch(`${API_BASE}/settings/rules/${encodeURIComponent(activeSchoolCode)}`)
+          fetch(`${API_BASE}/schools/${encodeURIComponent(activeSchoolCode)}`, { headers: authHeaders() }),
+          fetch(`${API_BASE}/members/parents/${encodeURIComponent(activeSchoolCode)}`, { headers: authHeaders() }),
+          fetch(`${API_BASE}/settings/rules/${encodeURIComponent(activeSchoolCode)}`, { headers: authHeaders() })
         ]);
         const [schoolsData, parentsData, rulesData] = await Promise.all([
           schoolsRes.ok ? schoolsRes.json() : [],
@@ -801,17 +811,17 @@ export const useStore = () => {
         await Promise.all([
           fetch(`${API_BASE}/schools/${encodeURIComponent(activeSchoolCode)}`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: authHeaders(true),
             body: JSON.stringify(db.schools || [])
           }),
           fetch(`${API_BASE}/members/parents/${encodeURIComponent(activeSchoolCode)}`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: authHeaders(true),
             body: JSON.stringify(db.parents || [])
           }),
           fetch(`${API_BASE}/settings/rules/${encodeURIComponent(activeSchoolCode)}`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: authHeaders(true),
             body: JSON.stringify(db.rules || [])
           })
         ]);

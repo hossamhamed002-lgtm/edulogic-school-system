@@ -45,6 +45,20 @@ const SystemLogin: React.FC<SystemLoginProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    // مسار خاص عند وجود توكن انتحال مبرمج لتجاوز استدعاء /auth/login
+    const existingToken = localStorage.getItem('auth_token');
+    if (existingToken) {
+      try {
+        const payload = JSON.parse(atob(existingToken.split('.')[1] || ''));
+        if (payload?.source === 'dev_impersonation') {
+          window.location.href = '/dashboard';
+          return;
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+
     const scopedCode = schoolCode.trim().toUpperCase();
 
     try {

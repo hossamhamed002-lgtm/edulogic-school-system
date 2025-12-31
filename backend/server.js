@@ -35,6 +35,13 @@ const allowedOrigins = [
   'http://localhost:5173'
 ];
 
+app.options('/dev/login', (req, res) => {
+  res.header('Access-Control-Allow-Origin', 'https://edulogic-school-system.pages.dev');
+  res.header('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  return res.sendStatus(200);
+});
+
 app.use(cors({
   origin: allowedOrigins,
   methods: ['GET','POST','PUT','DELETE','OPTIONS'],

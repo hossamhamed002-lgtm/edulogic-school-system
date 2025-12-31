@@ -40,6 +40,16 @@ app.options('*', cors({
 app.use(express.json({ limit: '5mb' }));
 app.use('/api', rateLimit);
 
+const devCors = cors({
+  origin: [
+    'https://edulogic-school-system.pages.dev'
+  ],
+  credentials: true,
+  methods: ['GET','POST','PUT','DELETE','OPTIONS'],
+  allowedHeaders: ['Content-Type','Authorization']
+});
+app.options('/dev/*', devCors);
+
 const db = new Database(DB_PATH);
 
 db.prepare(`
@@ -430,8 +440,8 @@ app.get('/health', (_req, res) => {
   });
 });
 
-// Protect all subsequent routes
-app.use('/dev', devLoginRouter);
+// Developer routes (public login + protected subs)
+app.use('/dev', devCors, devLoginRouter);
 
 app.use(authJwt);
 app.use(rolePermissions);

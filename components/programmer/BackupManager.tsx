@@ -95,18 +95,23 @@ const BackupManager: React.FC<{ store?: any }> = ({ store }) => {
   };
 
   useEffect(() => {
-    setSchools(loadDirectory());
+    (async () => {
+      const dir = await loadDirectory();
+      setSchools(dir);
+    })();
   }, []);
 
   useEffect(() => {
-    if (!selectedSchool) {
-      setBackups([]);
+    (async () => {
+      if (!selectedSchool) {
+        setBackups([]);
+        setSelectedBackupId(null);
+        return;
+      }
+      const records = await readBackups(selectedSchool.code);
+      setBackups(records);
       setSelectedBackupId(null);
-      return;
-    }
-    const records = readBackups(selectedSchool.code);
-    setBackups(records);
-    setSelectedBackupId(null);
+    })();
   }, [selectedSchool]);
 
   const handleCreateBackup = () => {
@@ -218,9 +223,9 @@ const BackupManager: React.FC<{ store?: any }> = ({ store }) => {
     { id: 'settings', label: 'الإعدادات العامة' }
   ];
 
-  const toggleModule = (id: string) => {
-    setSelectedModules((prev) => (prev.includes(id) ? prev.filter((m) => m !== id) : [...prev, id]));
-  };
+const toggleModule = (id: string) => {
+  setSelectedModules((prev) => (prev.includes(id) ? prev.filter((m) => m !== id) : [...prev, id]));
+};
 
   return (
     <div className="space-y-6">

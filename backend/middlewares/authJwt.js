@@ -16,7 +16,8 @@ export default function authJwt(req, res, next) {
     req.user = {
       id: decoded.userId || decoded.id,
       role: decoded.role,
-      schoolCode: decoded.schoolCode
+      schoolCode: decoded.schoolCode,
+      scope: decoded.scope
     };
 
     if (

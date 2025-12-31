@@ -2,8 +2,8 @@ import express from 'express';
 import 'dotenv/config';
 import Database from 'better-sqlite3';
 import jwt from 'jsonwebtoken';
-// import academicRoutes from './routes/academic/index.js';
-// import membersRoutes from './routes/members/index.js';
+import academicRoutes from './routes/academic/index.js';
+import membersRoutes from './routes/members/index.js';
 import authRoutes from './routes/auth/login.js';
 import rateLimit from './utils/rateLimit.js';
 import membersUsersRoutes from './routes/members/users.js';
@@ -12,8 +12,8 @@ import rolePermissions from './middlewares/rolePermissions.js';
 import devLoginRouter from './routes/dev/login.js';
 import { requireRole } from './middlewares/requireRole.js';
 import backupsRouter from './routes/core/backups.js';
-// import financeRoutes from './routes/finance/index.js';
-// import coreRoutes from './routes/core/index.js';
+import financeRoutes from './routes/finance/index.js';
+import coreRoutes from './routes/core/index.js';
 
 const app = express();
 const PORT = process.env.PORT;
@@ -414,11 +414,6 @@ db.prepare(`
   console.log('Developer account ready');
 })();
 
-// Academic routes
-// app.use('/academic', academicRoutes);
-// app.use('/members', membersRoutes);
-// app.use('/finance', financeRoutes);
-// app.use('/', coreRoutes);
 app.use(authRoutes);
 
 app.get('/', (_req, res) => {
@@ -443,6 +438,12 @@ app.use('/dev', devLoginRouter);
 
 app.use(authJwt);
 app.use(rolePermissions);
+
+// Academic/Finance/Members routes (protected)
+app.use('/academic', academicRoutes);
+app.use('/members', membersRoutes);
+app.use('/finance', financeRoutes);
+app.use('/', coreRoutes);
 
 // Protected routers
 app.use(membersUsersRoutes);

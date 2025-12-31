@@ -19,13 +19,6 @@ const app = express();
 const PORT = process.env.PORT || 4001;
 const DB_PATH = process.env.DB_PATH || './school.db';
 
-const allowedOrigins = [
-  'https://edulogic-school-system.pages.dev',
-  'http://localhost:3000',
-  'http://localhost:3001',
-  'http://localhost:5173'
-];
-
 app.use((req, res, next) => {
   const origin = req.headers.origin;
 
@@ -44,11 +37,12 @@ app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Credentials', 'true');
 
   if (req.method === 'OPTIONS') {
-    return res.sendStatus(200);
+    return res.status(200).end();
   }
 
   next();
 });
+console.log('CORS MIDDLEWARE ACTIVE');
 
 app.use(express.json({ limit: '5mb' }));
 

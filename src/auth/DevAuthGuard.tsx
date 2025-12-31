@@ -6,16 +6,9 @@ type DevGuardProps = {
 };
 
 const DevAuthGuard: React.FC<DevGuardProps> = ({ children }) => {
-  const token = localStorage.getItem('auth_token');
-  const user = (() => {
-    try {
-      return JSON.parse(localStorage.getItem('auth_user') || '{}');
-    } catch {
-      return {};
-    }
-  })();
+  const token = localStorage.getItem('dev_token');
 
-  if (!token || (user?.role || '').toUpperCase() !== 'DEVELOPER') {
+  if (!token) {
     return <Navigate to="/developer/login" replace />;
   }
   return children;

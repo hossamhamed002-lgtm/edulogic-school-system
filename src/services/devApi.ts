@@ -12,7 +12,7 @@ const isAuthFree = (url?: string) => url?.startsWith('/dev/login');
 
 const requestInterceptors: Array<(config: RequestConfig & { url?: string }) => RequestConfig> = [
   (config) => {
-    const token = localStorage.getItem('auth_token');
+    const token = localStorage.getItem('dev_token');
     const isLogin = isAuthFree(config.url);
     const isOptions = config.method === 'OPTIONS';
 
@@ -35,10 +35,10 @@ const applyInterceptors = (config: RequestConfig) =>
 
 const handleResponse = async (res: Response) => {
   if (res.status === 401) {
-    const hasToken = !!localStorage.getItem('auth_token');
+    const hasToken = !!localStorage.getItem('dev_token');
     if (hasToken) {
-      localStorage.removeItem('auth_token');
-      localStorage.removeItem('auth_user');
+      localStorage.removeItem('dev_token');
+      localStorage.removeItem('dev_role');
       window.location.href = '/developer/login';
     }
     throw new Error('Unauthorized');
@@ -51,7 +51,7 @@ const handleResponse = async (res: Response) => {
 };
 
 export const devApiGet = async (url: string) => {
-  const hasToken = !!localStorage.getItem('auth_token');
+  const hasToken = !!localStorage.getItem('dev_token');
   if (!hasToken && !isAuthFree(url)) {
     throw new Error('No auth token');
   }
@@ -68,7 +68,7 @@ export const devApiGet = async (url: string) => {
 };
 
 export const devApiPost = async (url: string, body: any) => {
-  const hasToken = !!localStorage.getItem('auth_token');
+  const hasToken = !!localStorage.getItem('dev_token');
   if (!hasToken && !isAuthFree(url)) {
     throw new Error('No auth token');
   }

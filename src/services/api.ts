@@ -1,4 +1,4 @@
-export const API_BASE_URL = 'https://schoolpayprosystem.up.railway.app';
+export const API_BASE_URL = 'https://school-pay-pro.onrender.com';
 const API_BASE = API_BASE_URL;
 
 type RequestConfig = {
@@ -77,7 +77,6 @@ export const apiGet = async (url: string) => {
 
 export const apiPost = async (url: string, body: any) => {
   const hasToken =
-    !!localStorage.getItem('dev_token') ||
     !!localStorage.getItem('token') ||
     !!localStorage.getItem('auth_token');
   if (!hasToken && !isAuthFree(url)) {

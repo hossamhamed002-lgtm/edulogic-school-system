@@ -4,7 +4,8 @@ export type FinancialCloseState = {
   summary?: Record<string, any>;
 };
 
-const API_BASE = (import.meta as any).env?.VITE_API_BASE_URL || 'http://localhost:4100';
+import { API_BASE_URL } from '../services/api';
+const API_BASE = API_BASE_URL;
 
 const normalize = (value?: string | number | null) => {
   if (value === undefined || value === null) return '';

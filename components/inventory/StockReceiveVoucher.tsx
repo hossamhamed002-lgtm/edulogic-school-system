@@ -3,8 +3,9 @@ import { Plus, Edit3, Trash2, Download, Search, Filter, CheckCircle2, AlertCircl
 import { useAccounts } from '../../src/hooks/useAccountsLogic';
 import { useJournal } from '../../src/hooks/useJournal';
 import { JournalEntry } from '../../src/types/journal.types';
+import { API_BASE_URL } from '../../src/services/api';
 
-const API_BASE = (import.meta as any).env?.VITE_API_BASE_URL || 'http://localhost:4100';
+const API_BASE = API_BASE_URL;
 import { AccountLevel, AccountType } from '../../src/types/accounts.types';
 import { exportUtils } from '../../modules/exam-control/services/exportUtils';
 import { isFinancialYearClosed } from '../../src/utils/financialYearClose';

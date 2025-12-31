@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Download } from 'lucide-react';
+import { API_BASE_URL } from '../../src/services/api';
 
-const API_BASE = (import.meta as any).env?.VITE_API_BASE_URL || 'http://localhost:4100';
+const API_BASE = API_BASE_URL;
 const ENDPOINT_TYPES = '/stores/types';
 const ENDPOINT_RECEIVE = '/stores/receive';
 const ENDPOINT_ISSUE = '/stores/issue';

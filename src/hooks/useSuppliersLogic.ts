@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Account, AccountLevel, AccountType } from '../types/accounts.types';
 import { useAccounts } from './useAccountsLogic';
+import { API_BASE_URL } from '../services/api';
 
-const API_BASE = (import.meta as any).env?.VITE_API_BASE_URL || 'http://localhost:4100';
+const API_BASE = API_BASE_URL;
 
 export interface SupplierAccount {
   id: string;

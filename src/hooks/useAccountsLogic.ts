@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Account } from '../types/accounts.types';
 import { getInitialSchoolAccounts } from '../data/schoolAccountsSeed';
+import { API_BASE_URL } from '../services/api';
 
-const API_BASE = (import.meta as any).env?.VITE_API_BASE_URL || 'http://localhost:4100';
+const API_BASE = API_BASE_URL;
 
 export const useAccounts = () => {
   const storeCtx = (typeof window !== 'undefined' && (window as any).store) || null;

@@ -8,8 +8,9 @@ import { getMemberActions } from './slices/memberLogic';
 import { getFinanceActions } from './slices/financeLogic';
 import { checkDeviceAndMaybeOtp, resendOtpForSession, verifyOtpAndTrust } from './security/authGuard';
 import { getSecuritySettings } from './security/securitySettings';
+import { API_BASE_URL } from './src/services/api';
 
-const API_BASE = (import.meta as any).env?.VITE_API_BASE_URL || 'http://localhost:4100';
+const API_BASE = API_BASE_URL;
 
 const LANG_KEY = 'EDULOGIC_LANG_V2';
 const YEAR_KEY = 'EDULOGIC_WORKING_YEAR_V2';

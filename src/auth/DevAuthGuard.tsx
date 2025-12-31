@@ -20,10 +20,10 @@ type DevGuardProps = {
 };
 
 const DevAuthGuard: React.FC<DevGuardProps> = ({ children }) => {
-  const token = localStorage.getItem('dev_token') || '';
+  const token = localStorage.getItem('auth_token') || '';
   if (!token) return <Navigate to="/dev/login" replace />;
   const payload = decodePayload(token);
-  if (!payload || payload.role !== 'DEVELOPER' || payload.scope !== 'SYSTEM') {
+  if (!payload || payload.role !== 'DEVELOPER') {
     return <Navigate to="/dev/login" replace />;
   }
   return children;

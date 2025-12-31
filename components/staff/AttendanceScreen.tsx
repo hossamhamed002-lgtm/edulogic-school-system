@@ -3,8 +3,9 @@ import { ChevronLeft } from 'lucide-react';
 import { buildDailyAttendanceRecord } from '../../src/hr/attendance/attendanceEngine';
 import { AttendanceRecord, AttendanceStatus } from '../../src/hr/attendance/attendance.types';
 import { LeaveRecord } from '../../src/hr/leave/leaveRecord.types';
+import { API_BASE_URL } from '../../src/services/api';
 
-const API_BASE = (import.meta as any).env?.VITE_API_BASE_URL || 'http://localhost:4100';
+const API_BASE = API_BASE_URL;
 const ENDPOINT_ATTENDANCE = '/hr/attendance';
 
 interface AttendanceScreenProps {

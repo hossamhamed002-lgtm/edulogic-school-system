@@ -1,7 +1,7 @@
 export type DeviceFingerprint = string;
 
 const FP_STORAGE_PREFIX = 'DEVICE_FP__';
-const API_BASE = (import.meta as any).env?.VITE_API_BASE_URL || 'http://localhost:4100';
+const API_BASE = API_BASE_URL;
 
 const getBrowserData = () => {
   if (typeof window === 'undefined') return 'server';
@@ -54,3 +54,4 @@ export const rememberFingerprint = (schoolCode: string, userId: string, fingerpr
     }
   })();
 };
+import { API_BASE_URL } from '../src/services/api';

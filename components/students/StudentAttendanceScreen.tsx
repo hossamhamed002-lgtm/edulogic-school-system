@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useCallback, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, CalendarDays } from 'lucide-react';
-const API_BASE = (import.meta as any).env?.VITE_API_BASE_URL || 'http://localhost:4100';
+import { API_BASE_URL } from '../../src/services/api';
+const API_BASE = API_BASE_URL;
 
 type StudentAttendanceStatus = 'present' | 'late' | 'absent' | 'excused' | 'leave';
 

@@ -2,7 +2,8 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { ShieldAlert, Trash2, AlertTriangle } from 'lucide-react';
 import purgeData from '../../services/dataPurgeService';
 import { useStore } from '../../store';
-const API_BASE = (import.meta as any).env?.VITE_API_BASE_URL || 'http://localhost:4100';
+import { API_BASE_URL } from '../../src/services/api';
+const API_BASE = API_BASE_URL;
 
 type SchoolEntry = { id: string; name: string; code: string };
 

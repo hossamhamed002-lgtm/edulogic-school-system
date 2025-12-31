@@ -1,4 +1,5 @@
-const API_BASE = (import.meta as any).env?.VITE_API_BASE_URL || 'http://localhost:4100';
+import { API_BASE_URL } from '../services/api';
+const API_BASE = API_BASE_URL;
 type SettingsMap = Record<string, any>;
 let cached: SettingsMap = {};
 

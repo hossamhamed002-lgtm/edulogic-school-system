@@ -3,7 +3,8 @@ import { Plus, Save, ShieldCheck, CalendarDays, School, KeyRound, UserCog, LogIn
 import { loadFromStorage, saveToStorage } from '../../db_engine';
 import { INITIAL_STATE, SYSTEM_MODULES } from '../../store';
 import { UserRole } from '../../types';
-const API_BASE = (import.meta as any).env?.VITE_API_BASE_URL || 'http://localhost:4100';
+import { API_BASE_URL } from '../../src/services/api';
+const API_BASE = API_BASE_URL;
 
 interface SchoolEntry {
   id: string;

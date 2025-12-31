@@ -3,7 +3,8 @@ import { Archive, Download, RefreshCw, Trash2, Database, AlertTriangle, Info } f
 import { loadFromStorage, saveToStorage } from '../../db_engine';
 import { INITIAL_STATE } from '../../store';
 import useBackupRestore from '../../hooks/useBackupRestore';
-const API_BASE = (import.meta as any).env?.VITE_API_BASE_URL || 'http://localhost:4100';
+import { API_BASE_URL } from '../../src/services/api';
+const API_BASE = API_BASE_URL;
 
 type BackupRecord = {
   id: string;

@@ -4,8 +4,9 @@ import { calculateMonthlyPayroll, AttendanceSummary, LeaveUsageSummary } from '.
 import { calculatePayrollSettingsImpact } from '../../src/hr/payroll/payrollSettingsCalculator';
 import { loadPayrollSettings } from '../../src/hr/payroll/payrollSettings.store';
 import { usePayrollPosting } from '../../hooks/usePayrollPosting';
+import { API_BASE_URL } from '../../src/services/api';
 
-const API_BASE = (import.meta as any).env?.VITE_API_BASE_URL || 'http://localhost:4100';
+const API_BASE = API_BASE_URL;
 
 interface PayrollReviewScreenProps {
   store: any;

@@ -26,8 +26,9 @@ import { useAccounts } from '../../src/hooks/useAccountsLogic';
 import { AccountLevel, AccountType } from '../../src/types/accounts.types';
 import { useJournal } from '../../src/hooks/useJournal';
 import { JournalEntry } from '../../src/types/journal.types';
+import { API_BASE_URL } from '../../src/services/api';
 
-const API_BASE = (import.meta as any).env?.VITE_API_BASE_URL || 'http://localhost:4100';
+const API_BASE = API_BASE_URL;
 
 type FixedAssetRecord = {
   id: string;

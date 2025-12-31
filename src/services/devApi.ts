@@ -1,4 +1,4 @@
-export const DEV_API_BASE_URL = 'https://schoolpayprosystem.up.railway.app';
+export const DEV_API_BASE_URL = 'https://school-pay-pro.onrender.com';
 const API_BASE = DEV_API_BASE_URL;
 
 type RequestConfig = {
@@ -12,7 +12,7 @@ const isAuthFree = (url?: string) => url?.startsWith('/dev/login');
 
 const requestInterceptors: Array<(config: RequestConfig & { url?: string }) => RequestConfig> = [
   (config) => {
-    const token = localStorage.getItem('dev_token');
+    const token = localStorage.getItem('auth_token');
     const isLogin = isAuthFree(config.url);
     const isOptions = config.method === 'OPTIONS';
 
@@ -35,9 +35,10 @@ const applyInterceptors = (config: RequestConfig) =>
 
 const handleResponse = async (res: Response) => {
   if (res.status === 401) {
-    const hasDevToken = !!localStorage.getItem('dev_token');
-    if (hasDevToken) {
-      localStorage.removeItem('dev_token');
+    const hasToken = !!localStorage.getItem('auth_token');
+    if (hasToken) {
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('auth_user');
       window.location.href = '/dev/login';
     }
     throw new Error('Unauthorized');
@@ -50,7 +51,7 @@ const handleResponse = async (res: Response) => {
 };
 
 export const devApiGet = async (url: string) => {
-  const hasToken = !!localStorage.getItem('dev_token');
+  const hasToken = !!localStorage.getItem('auth_token');
   if (!hasToken && !isAuthFree(url)) {
     throw new Error('No auth token');
   }
@@ -67,7 +68,7 @@ export const devApiGet = async (url: string) => {
 };
 
 export const devApiPost = async (url: string, body: any) => {
-  const hasToken = !!localStorage.getItem('dev_token');
+  const hasToken = !!localStorage.getItem('auth_token');
   if (!hasToken && !isAuthFree(url)) {
     throw new Error('No auth token');
   }

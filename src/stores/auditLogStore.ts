@@ -34,7 +34,7 @@ export interface AuditLogEntry {
   tags?: string[];
 }
 
-const API_BASE = (import.meta as any).env?.VITE_API_BASE_URL || 'http://localhost:4100';
+const API_BASE = API_BASE_URL;
 const STORAGE_KEY = 'APP_AUDIT_LOG';
 const MAX_ENTRIES = 500;
 
@@ -141,3 +141,4 @@ export const withAudit = (
   };
   return logAuditEvent(payload);
 };
+import { API_BASE_URL } from '../services/api';

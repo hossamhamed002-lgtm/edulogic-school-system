@@ -121,6 +121,41 @@ router.post('/impersonate-school', devAuthOnly, (req, res) => {
       `).run(scopedCode, adminUsername, 'dev-admin', 'ADMIN');
     }
 
+    // Provision minimal finance/academic scaffolding to avoid 500s
+    try {
+      db.prepare(
+        `INSERT OR IGNORE INTO academic_years (school_code, name, start_date, end_date, is_active)
+         VALUES (?, ?, NULL, NULL, 1)`
+      ).run(scopedCode, 'Default Year');
+      db.prepare(
+        `INSERT OR IGNORE INTO academic_stages (schoolCode, data)
+         VALUES (?, '[]')`
+      ).run(scopedCode);
+      db.prepare(
+        `INSERT OR IGNORE INTO academic_grades (schoolCode, data)
+         VALUES (?, '[]')`
+      ).run(scopedCode);
+      db.prepare(
+        `INSERT OR IGNORE INTO academic_classes (schoolCode, data)
+         VALUES (?, '[]')`
+      ).run(scopedCode);
+      // Finance placeholders (empty rows are fine; GET will return [])
+      db.prepare(
+        `INSERT OR IGNORE INTO finance_accounts (school_code, code, name)
+         VALUES (?, ?, ?)`
+      ).run(scopedCode, 'ROOT', 'Default Account');
+      db.prepare(
+        `INSERT OR IGNORE INTO finance_fee_items (school_code, name, amount)
+         VALUES (?, ?, ?)`
+      ).run(scopedCode, 'Default Fee', 0);
+      db.prepare(
+        `INSERT OR IGNORE INTO finance_fee_structure (school_code, total_amount)
+         VALUES (?, ?)`
+      ).run(scopedCode, 0);
+    } catch (seedErr) {
+      console.error('Provisioning seed data failed', seedErr);
+    }
+
     const token = signToken({
       userId: `DEV-IMPERSONATE-${scopedCode}`,
       role: 'ADMIN',

@@ -6,11 +6,16 @@ import { all, run } from '../../db/sqlite.js';
 const router = Router();
 
 router.get('/:schoolCode', authMiddleware, requireRole(['ADMIN', 'ACCOUNTANT']), async (req, res) => {
-  const rows = await all(
-    `SELECT * FROM finance_accounts WHERE school_code = ?`,
-    [req.params.schoolCode]
-  );
-  res.json(rows);
+  try {
+    const rows = await all(
+      `SELECT * FROM finance_accounts WHERE school_code = ?`,
+      [req.params.schoolCode]
+    );
+    return res.json(rows || []);
+  } catch (err) {
+    console.error('GET /finance/accounts error', err);
+    return res.json([]);
+  }
 });
 
 router.post('/:schoolCode', authMiddleware, requireRole(['ADMIN', 'ACCOUNTANT']), async (req, res) => {

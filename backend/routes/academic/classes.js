@@ -5,12 +5,13 @@ import authToken from '../../middleware/authToken.js';
 const router = Router();
 
 router.get('/:schoolCode', authToken, async (req, res) => {
-  const { schoolCode } = req.params;
-  const row = getOne('SELECT data FROM academic_classes WHERE schoolCode = ?', [schoolCode]);
-  if (!row?.data) return res.json([]);
   try {
-    return res.json(JSON.parse(row.data));
-  } catch {
+    const { schoolCode } = req.params;
+    const row = getOne('SELECT data FROM academic_classes WHERE schoolCode = ?', [schoolCode]);
+    if (!row?.data) return res.json([]);
+    return res.json(JSON.parse(row.data || '[]'));
+  } catch (err) {
+    console.error('GET /academic/classes error', err);
     return res.json([]);
   }
 });

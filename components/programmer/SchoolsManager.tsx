@@ -173,14 +173,38 @@ const SchoolsManager: React.FC<{ store?: any }> = ({ store }) => {
     setActiveId(null);
   };
 
-  const handleEnterSchool = (school: SchoolEntry) => {
+  const handleEnterSchool = async (school: SchoolEntry) => {
     if (!school.adminUsername || !school.adminPassword) {
       alert(isRtl ? 'بيانات مدير المدرسة غير مكتملة.' : 'Admin credentials are missing.');
       return;
     }
+    // إذا توفر سياق المتجر القديم، استخدمه
     const result = store?.enterSchoolAsAdmin?.(school.code, school.adminUsername, school.adminPassword);
-    if (result && !result.ok) {
-      alert(result.error || (isRtl ? 'تعذر تسجيل الدخول.' : 'Login failed.'));
+    if (result && result.ok) {
+      return;
+    }
+    // دخول مباشر عبر الـ API في حال عدم توفر السياق
+    try {
+      const res = await fetch(`${API_BASE}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          schoolCode: school.code,
+          username: school.adminUsername,
+          password: school.adminPassword
+        })
+      });
+      const data = await res.json();
+      if (res.ok && data?.token) {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('auth_token', data.token);
+        if (data.user) localStorage.setItem('auth_user', JSON.stringify(data.user));
+        window.location.href = '/';
+      } else {
+        alert(data?.error || data?.message || (isRtl ? 'تعذر تسجيل الدخول.' : 'Login failed.'));
+      }
+    } catch {
+      alert(isRtl ? 'تعذر الاتصال بالخادم.' : 'Could not reach server.');
     }
   };
 

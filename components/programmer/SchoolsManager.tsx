@@ -110,8 +110,9 @@ const generateSchoolCode = (items: SchoolEntry[]) => {
   return `SCH-${next}`;
 };
 
-const SchoolsManager: React.FC<{ store: any }> = ({ store }) => {
-  const { lang } = store;
+const SchoolsManager: React.FC<{ store?: any }> = ({ store }) => {
+  const lang = store?.lang || 'ar';
+  const t = store?.t || ((key: string) => key);
   const isRtl = lang === 'ar';
   const moduleOptions = SYSTEM_MODULES.filter((m) => m.id !== 'programmer');
 
@@ -170,7 +171,7 @@ const SchoolsManager: React.FC<{ store: any }> = ({ store }) => {
       alert(isRtl ? 'بيانات مدير المدرسة غير مكتملة.' : 'Admin credentials are missing.');
       return;
     }
-    const result = store.enterSchoolAsAdmin?.(school.code, school.adminUsername, school.adminPassword);
+    const result = store?.enterSchoolAsAdmin?.(school.code, school.adminUsername, school.adminPassword);
     if (result && !result.ok) {
       alert(result.error || (isRtl ? 'تعذر تسجيل الدخول.' : 'Login failed.'));
     }
@@ -406,7 +407,7 @@ const SchoolsManager: React.FC<{ store: any }> = ({ store }) => {
                   onClick={() => toggleModule(module.id)}
                   className={`flex items-center justify-between p-4 rounded-2xl border transition ${checked ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-slate-50 border-slate-100 text-slate-500 hover:border-slate-200'}`}
                 >
-                  <span className="text-sm font-black">{store.t[module.labelKey]}</span>
+                  <span className="text-sm font-black">{t(module.labelKey)}</span>
                   <span className={`text-[10px] font-black ${checked ? 'text-emerald-100' : 'text-slate-400'}`}>{checked ? (isRtl ? 'مفعل' : 'Enabled') : (isRtl ? 'معطل' : 'Disabled')}</span>
                 </button>
               );

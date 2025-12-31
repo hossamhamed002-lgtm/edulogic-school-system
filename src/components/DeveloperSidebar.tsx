@@ -3,6 +3,7 @@ import { NavLink } from 'react-router-dom';
 
 const links = [
   { to: '/developer/dashboard', label: 'لوحة المبرمج' },
+  { to: '/developer/subscribers', label: 'إدارة المشتركين' },
   { to: '/developer/backups', label: 'النسخ الاحتياطي' },
   { to: '/developer/security', label: 'إعدادات الأمان' },
   { to: '/developer/alerts', label: 'التنبيهات الأمنية' },

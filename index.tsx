@@ -14,6 +14,7 @@ import BackupManager from './components/programmer/BackupManager';
 import SecuritySettingsPanel from './components/programmer/SecuritySettingsPanel';
 import SecurityAlerts from './components/DeveloperPanel/SecurityAlerts';
 import AuditLog from './src/pages/developer/AuditLog';
+import SchoolsManager from './components/programmer/SchoolsManager';
 import { AppContextProvider } from './src/contexts/AppContext';
 import { AuthProvider } from './src/context/AuthContext';
 
@@ -44,6 +45,7 @@ root.render(
               <Route path="security" element={<SecuritySettingsPanel />} />
               <Route path="alerts" element={<SecurityAlerts />} />
               <Route path="audit" element={<AuditLog />} />
+              <Route path="subscribers" element={<SchoolsManager />} />
             </Route>
             <Route path="/login" element={<App />} />
             <Route

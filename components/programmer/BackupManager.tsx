@@ -63,8 +63,8 @@ const formatBytes = (bytes: number) => {
   return `${(kb / 1024).toFixed(1)} MB`;
 };
 
-const BackupManager: React.FC<{ store: any }> = ({ store }) => {
-  const { currentUser } = store;
+const BackupManager: React.FC<{ store?: any }> = ({ store }) => {
+  const currentUser = store?.currentUser || {};
   const [schools, setSchools] = useState<SchoolEntry[]>([]);
   const [selectedSchool, setSelectedSchool] = useState<SchoolEntry | null>(null);
   const [backups, setBackups] = useState<BackupRecord[]>([]);

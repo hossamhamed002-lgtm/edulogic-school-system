@@ -7,13 +7,8 @@ const router = Router();
 // In-memory placeholder storage to avoid 404/401 while keeping developer scope enforced
 const memoryStore = new Map();
 
-// Enforce developer + system scope for all backups endpoints
-router.use(authJwt, requireRole(['DEVELOPER']), (req, res, next) => {
-  if ((req.user?.scope || '').toUpperCase() !== 'SYSTEM') {
-    return res.status(403).json({ error: 'Forbidden' });
-  }
-  next();
-});
+// Enforce developer role for all backups endpoints
+router.use(authJwt, requireRole(['DEVELOPER']));
 
 router.get('/', (req, res) => {
   res.json({ message: 'Backups module ready. Full export will be enabled later.' });

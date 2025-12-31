@@ -1,8 +1,30 @@
 import { Router } from 'express';
 import { db } from '../../db/sqlite.js';
 import { signToken } from '../../utils/jwt.js';
+import jwt from 'jsonwebtoken';
 
 const router = Router();
+
+const devAuthOnly = (req, res, next) => {
+  const authHeader = req.headers.authorization || '';
+  const parts = authHeader.split(' ');
+  if (parts.length !== 2 || parts[0] !== 'Bearer') {
+    return res.status(401).json({ ok: false, message: 'Missing developer token' });
+  }
+  try {
+    const decoded = jwt.verify(parts[1], process.env.JWT_SECRET || 'dev-secret');
+    const role = (decoded.role || '').toUpperCase();
+    const scope = (decoded.scope || '').toUpperCase();
+    const source = (decoded.source || '').toLowerCase();
+    if (role !== 'DEVELOPER' && scope !== 'SYSTEM' && source !== 'developer') {
+      return res.status(403).json({ ok: false, message: 'Forbidden' });
+    }
+    req.user = decoded;
+    return next();
+  } catch {
+    return res.status(401).json({ ok: false, message: 'Invalid developer token' });
+  }
+};
 
 router.post('/login', (req, res) => {
   try {
@@ -53,7 +75,7 @@ router.post('/login', (req, res) => {
 });
 
 // Impersonate a school as ADMIN (developer-only)
-router.post('/impersonate-school', authJwt, (req, res) => {
+router.post('/impersonate-school', devAuthOnly, (req, res) => {
   try {
     const schoolCode = req.body?.schoolCode || req.body?.schoolId;
     if (!schoolCode) {

@@ -21,14 +21,14 @@ router.get('/', (req, res) => {
 
 router.get('/:key', (req, res) => {
   const key = req.params.key || '';
-  const data = memoryStore.get(key) || [];
-  res.json(data);
+  const data = memoryStore.get(key);
+  res.json(Array.isArray(data) ? data : []);
 });
 
 router.post('/:key', (req, res) => {
   const key = req.params.key || '';
-  const payload = Array.isArray(req.body) || typeof req.body === 'object' ? req.body : [];
-  memoryStore.set(key, payload);
+  const payload = Array.isArray(req.body) ? req.body : (typeof req.body === 'object' && req.body !== null ? [req.body] : []);
+  memoryStore.set(key, payload || []);
   res.json({ ok: true });
 });
 

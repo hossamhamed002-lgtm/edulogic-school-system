@@ -1,5 +1,4 @@
 import express from 'express';
-import cors from 'cors';
 import 'dotenv/config';
 import Database from 'better-sqlite3';
 import jwt from 'jsonwebtoken';
@@ -20,16 +19,6 @@ const app = express();
 const PORT = process.env.PORT || 4001;
 const DB_PATH = process.env.DB_PATH || './school.db';
 
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', 'https://edulogic-school-system.pages.dev');
-  res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(200);
-  }
-  next();
-});
-
 const allowedOrigins = [
   'https://edulogic-school-system.pages.dev',
   'http://localhost:3000',
@@ -39,24 +28,26 @@ const allowedOrigins = [
 
 app.use((req, res, next) => {
   const origin = req.headers.origin;
-  if (origin && allowedOrigins.includes(origin)) {
+
+  if (
+    origin &&
+    (
+      origin === 'https://edulogic-school-system.pages.dev' ||
+      origin.startsWith('http://localhost')
+    )
+  ) {
     res.setHeader('Access-Control-Allow-Origin', origin);
   }
+
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.setHeader('Access-Control-Allow-Credentials', 'true');
+
   if (req.method === 'OPTIONS') {
     return res.sendStatus(200);
   }
+
   next();
-});
-app.options('/dev/login', (req, res) => {
-  const origin = allowedOrigins.includes(req.headers.origin || '') ? req.headers.origin : allowedOrigins[0];
-  res.header('Access-Control-Allow-Origin', origin);
-  res.header('Access-Control-Allow-Methods', 'POST,OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  return res.sendStatus(200);
 });
 
 app.use(express.json({ limit: '5mb' }));

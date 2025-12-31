@@ -6,6 +6,11 @@ import { UserRole } from '../../types';
 import { API_BASE_URL } from '../../src/services/api';
 const API_BASE = API_BASE_URL;
 
+const authHeaders = () => {
+  const token = localStorage.getItem('dev_token');
+  return token ? { Authorization: `Bearer ${token}` } : {};
+};
+
 interface SchoolEntry {
   id: string;
   name: string;
@@ -22,7 +27,9 @@ interface SchoolEntry {
 const DIRECTORY_KEY = 'SchoolPay Pro_V1';
 
 const loadDirectory = async (): Promise<SchoolEntry[]> => {
-  const res = await fetch(`${API_BASE}/backups/${encodeURIComponent('DIRECTORY')}`);
+  const res = await fetch(`${API_BASE}/backups/${encodeURIComponent('DIRECTORY')}`, {
+    headers: { ...authHeaders() }
+  });
   if (res.ok) {
     const data = await res.json();
     if (Array.isArray(data)) return data;
@@ -34,7 +41,7 @@ const saveDirectory = async (items: SchoolEntry[]) => {
   try {
     await fetch(`${API_BASE}/backups/${encodeURIComponent('DIRECTORY')}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
       body: JSON.stringify(items || [])
     });
   } catch {

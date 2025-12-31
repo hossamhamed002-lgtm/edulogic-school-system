@@ -6,6 +6,11 @@ import useBackupRestore from '../../hooks/useBackupRestore';
 import { API_BASE_URL } from '../../src/services/api';
 const API_BASE = API_BASE_URL;
 
+const authHeaders = () => {
+  const token = localStorage.getItem('dev_token');
+  return token ? { Authorization: `Bearer ${token}` } : {};
+};
+
 type BackupRecord = {
   id: string;
   schoolCode: string;
@@ -29,7 +34,9 @@ const DIRECTORY_KEY = 'SchoolPay Pro_V1';
 const buildBackupKey = (schoolCode: string) => `BACKUPS__${schoolCode}`;
 
 const loadDirectory = async (): Promise<SchoolEntry[]> => {
-  const res = await fetch(`${API_BASE}/backups/${encodeURIComponent('DIRECTORY')}`);
+  const res = await fetch(`${API_BASE}/backups/${encodeURIComponent('DIRECTORY')}`, {
+    headers: { ...authHeaders() }
+  });
   if (res.ok) {
     const data = await res.json();
     if (Array.isArray(data)) return data;
@@ -38,7 +45,9 @@ const loadDirectory = async (): Promise<SchoolEntry[]> => {
 };
 
 const readBackups = async (schoolCode: string): Promise<BackupRecord[]> => {
-  const res = await fetch(`${API_BASE}/backups/${encodeURIComponent(schoolCode)}`);
+  const res = await fetch(`${API_BASE}/backups/${encodeURIComponent(schoolCode)}`, {
+    headers: { ...authHeaders() }
+  });
   if (res.ok) {
     const data = await res.json();
     if (Array.isArray(data)) return data;
@@ -50,7 +59,7 @@ const writeBackups = async (schoolCode: string, items: BackupRecord[]) => {
   try {
     await fetch(`${API_BASE}/backups/${encodeURIComponent(schoolCode)}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
       body: JSON.stringify(items || [])
     });
   } catch { /* ignore */ }

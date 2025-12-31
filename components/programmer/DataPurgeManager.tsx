@@ -5,11 +5,18 @@ import { useStore } from '../../store';
 import { API_BASE_URL } from '../../src/services/api';
 const API_BASE = API_BASE_URL;
 
+const authHeaders = () => {
+  const token = localStorage.getItem('dev_token');
+  return token ? { Authorization: `Bearer ${token}` } : {};
+};
+
 type SchoolEntry = { id: string; name: string; code: string };
 
 const DIRECTORY_KEY = 'EDULOGIC_SCHOOLS_DIRECTORY_V1';
 const loadDirectory = async (): Promise<SchoolEntry[]> => {
-  const res = await fetch(`${API_BASE}/backups/${encodeURIComponent('DIRECTORY')}`);
+  const res = await fetch(`${API_BASE}/backups/${encodeURIComponent('DIRECTORY')}`, {
+    headers: { ...authHeaders() }
+  });
   if (res.ok) {
     const data = await res.json();
     if (Array.isArray(data)) return data;

@@ -32,30 +32,23 @@ app.use((req, res, next) => {
 
 const allowedOrigins = [
   'https://edulogic-school-system.pages.dev',
+  'http://localhost:3000',
+  'http://localhost:3001',
   'http://localhost:5173'
 ];
 
-app.options('/dev/login', (req, res) => {
-  res.header('Access-Control-Allow-Origin', 'https://edulogic-school-system.pages.dev');
-  res.header('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  return res.sendStatus(200);
-});
-
-app.use(cors({
-  origin: allowedOrigins,
-  methods: ['GET','POST','PUT','DELETE','OPTIONS'],
-  allowedHeaders: ['Content-Type','Authorization'],
-  credentials: true
-}));
-
-app.options('*', (req, res) => {
-  const origin = allowedOrigins.includes(req.headers.origin || '') ? req.headers.origin : allowedOrigins[0];
-  res.header('Access-Control-Allow-Origin', origin);
-  res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  return res.sendStatus(200);
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (origin && allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
 });
 app.options('/dev/login', (req, res) => {
   const origin = allowedOrigins.includes(req.headers.origin || '') ? req.headers.origin : allowedOrigins[0];

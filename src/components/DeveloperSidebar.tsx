@@ -1,7 +1,13 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 
-const links = [{ to: '/developer/dashboard', label: 'لوحة المبرمج' }];
+const links = [
+  { to: '/developer/dashboard', label: 'لوحة المبرمج' },
+  { to: '/developer/backups', label: 'النسخ الاحتياطي' },
+  { to: '/developer/security', label: 'إعدادات الأمان' },
+  { to: '/developer/alerts', label: 'التنبيهات الأمنية' },
+  { to: '/developer/audit', label: 'سجل الأحداث' }
+];
 
 const DeveloperSidebar: React.FC = () => {
   return (

@@ -1,10 +1,10 @@
 import { Router } from 'express';
 import { getOne, run, all } from '../../db/sqlite.js';
-import authToken from '../../middleware/authToken.js';
+import authJwt from '../../middlewares/authJwt.js';
 
 const router = Router();
 
-router.get('/:schoolCode', authToken, async (req, res) => {
+router.get('/:schoolCode', authJwt, async (req, res) => {
   try {
     const { schoolCode } = req.params;
     const row = getOne('SELECT data FROM academic_grades WHERE schoolCode = ?', [schoolCode]);
@@ -16,7 +16,7 @@ router.get('/:schoolCode', authToken, async (req, res) => {
   }
 });
 
-router.post('/:schoolCode', authToken, async (req, res) => {
+router.post('/:schoolCode', authJwt, async (req, res) => {
   const { schoolCode } = req.params;
   const payload = Array.isArray(req.body) ? req.body : [];
   const data = JSON.stringify(payload);
@@ -29,7 +29,7 @@ router.post('/:schoolCode', authToken, async (req, res) => {
 });
 
 // تحديث صف
-router.put('/:id', authToken, async (req, res) => {
+router.put('/:id', authJwt, async (req, res) => {
   const { id } = req.params;
   const { name, order_index = 0, stage_id } = req.body;
   run(
@@ -42,7 +42,7 @@ router.put('/:id', authToken, async (req, res) => {
 });
 
 // حذف صف مع حماية الفصول
-router.delete('/:id', authToken, async (req, res) => {
+router.delete('/:id', authJwt, async (req, res) => {
   const { id } = req.params;
   const classes = await all(`SELECT id FROM academic_classes WHERE grade_id = ?`, [id]);
   if (classes.length > 0) {

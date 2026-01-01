@@ -22,26 +22,37 @@ if (!PORT) {
 }
 const DB_PATH = process.env.DB_PATH || './school.db';
 
+const allowedOrigins = new Set([
+  'https://edulogic-school-system.pages.dev',
+  'http://localhost:3003',
+  'http://localhost:3000',
+  'http://localhost:5173'
+]);
+
+const applyCorsHeaders = (req, res) => {
+  const origin = req.headers.origin || '';
+  if (origin && allowedOrigins.has(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+};
+
 /* ===== FORCE OPTIONS FIRST ===== */
-app.options("*", (req, res) => {
-  res.setHeader("Access-Control-Allow-Origin", req.headers.origin || "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  res.setHeader("Access-Control-Allow-Credentials", "true");
-  return res.sendStatus(200);
+app.options('*', (req, res) => {
+  applyCorsHeaders(req, res);
+  return res.sendStatus(204);
 });
 
 /* ===== CORS FOR ALL REQUESTS ===== */
 app.use((req, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", req.headers.origin || "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  res.setHeader("Access-Control-Allow-Credentials", "true");
+  applyCorsHeaders(req, res);
   next();
 });
 
 app.get("/health", (req, res) => {
-  res.status(200).json({ status: "ok", source: "express" });
+  res.status(200).json({ ok: true, service: "schoolpaypro-api", status: "ok", source: "express" });
 });
 
 app.use(express.json({ limit: '5mb' }));
@@ -457,7 +468,7 @@ app.get('/school-info/:year', (req, res) => {
     return res.json(JSON.parse(row.data));
   } catch (err) {
     console.error('GET /school-info error', err);
-    return res.status(500).json({ error: 'Failed to load school info' });
+    return res.json(null);
   }
 });
 
@@ -471,7 +482,7 @@ app.post('/school-info/:year', (req, res) => {
     return res.json({ success: true });
   } catch (err) {
     console.error('POST /school-info error', err);
-    return res.status(500).json({ error: 'Failed to save school info' });
+    return res.json({ success: false });
   }
 });
 
@@ -484,7 +495,7 @@ app.get('/students/:year', (req, res) => {
     return res.json(JSON.parse(row.data));
   } catch (err) {
     console.error('GET /students error', err);
-    return res.status(500).json({ error: 'Failed to load students' });
+    return res.json([]);
   }
 });
 
@@ -498,7 +509,7 @@ app.post('/students/:year', (req, res) => {
     return res.json({ success: true });
   } catch (err) {
     console.error('POST /students error', err);
-    return res.status(500).json({ error: 'Failed to save students' });
+    return res.json({ success: false });
   }
 });
 
@@ -511,7 +522,7 @@ app.get('/employees/:schoolCode', (req, res) => {
     return res.json(JSON.parse(row.data));
   } catch (err) {
     console.error('GET /employees error', err);
-    return res.status(500).json({ error: 'Failed to load employees' });
+    return res.json([]);
   }
 });
 
@@ -525,87 +536,125 @@ app.post('/employees/:schoolCode', (req, res) => {
     return res.json({ success: true });
   } catch (err) {
     console.error('POST /employees error', err);
-    return res.status(500).json({ error: 'Failed to save employees' });
+    return res.json({ success: false });
   }
 });
 
-const makeAcademicHandler = (table) => ({
-  get: (req, res) => {
-    try {
-      const row = db
-        .prepare(`SELECT data FROM ${table} WHERE schoolCode = ?`)
-        .get(req.params.schoolCode);
-      if (!row) return res.json([]);
-      return res.json(JSON.parse(row.data));
-    } catch (err) {
-      console.error(`GET /${table} error`, err);
-      return res.status(500).json({ error: `Failed to load ${table}` });
-    }
-  },
-  post: (req, res) => {
-    try {
-      const payload = JSON.stringify(req.body || []);
-      db.prepare(`
-        INSERT OR REPLACE INTO ${table} (schoolCode, data)
-        VALUES (?, ?)
-      `).run(req.params.schoolCode, payload);
-      return res.json({ success: true });
-    } catch (err) {
-      console.error(`POST /${table} error`, err);
-      return res.status(500).json({ error: `Failed to save ${table}` });
-    }
+const createJsonTable = (table, keyColumn) => {
+  try {
+    db.prepare(`
+      CREATE TABLE IF NOT EXISTS ${table} (
+        ${keyColumn} TEXT PRIMARY KEY,
+        data TEXT NOT NULL
+      )
+    `).run();
+  } catch (err) {
+    console.error(`createJsonTable ${table} failed`, err);
   }
-});
+};
 
-const yearsHandler = makeAcademicHandler('academic_years');
+const resolveKey = (req, keyColumn = 'schoolCode') =>
+  req.params?.[keyColumn]
+  || req.params?.schoolCode
+  || req.params?.year
+  || req.body?.[keyColumn]
+  || req.query?.[keyColumn]
+  || req.body?.schoolCode
+  || req.query?.schoolCode
+  || '';
+
+const makeSafeHandler = (table, options = {}) => {
+  const keyColumn = options.keyColumn || 'schoolCode';
+  const targetTable = options.storageTable || table;
+  const emptyValue = options.emptyValue ?? [];
+
+  createJsonTable(targetTable, keyColumn);
+
+  return {
+    get: (req, res) => {
+      try {
+        const key = resolveKey(req, keyColumn);
+        if (!key) return res.json(emptyValue);
+        const row = db
+          .prepare(`SELECT data FROM ${targetTable} WHERE ${keyColumn} = ?`)
+          .get(key);
+        if (!row) return res.json(emptyValue);
+        try {
+          return res.json(JSON.parse(row.data));
+        } catch {
+          return res.json(emptyValue);
+        }
+      } catch (err) {
+        console.error(`GET /${table} error`, err);
+        return res.json(emptyValue);
+      }
+    },
+    post: (req, res) => {
+      try {
+        const key = resolveKey(req, keyColumn);
+        const payload = JSON.stringify(req.body ?? emptyValue);
+        db.prepare(`
+          INSERT OR REPLACE INTO ${targetTable} (${keyColumn}, data)
+          VALUES (?, ?)
+        `).run(key, payload);
+        return res.json({ success: true });
+      } catch (err) {
+        console.error(`POST /${table} error`, err);
+        return res.json({ success: false });
+      }
+    }
+  };
+};
+
+const yearsHandler = makeSafeHandler('academic_years');
 app.get('/academic/years/:schoolCode', requireRole(['ADMIN', 'STAFF']), yearsHandler.get);
 app.post('/academic/years/:schoolCode', requireRole(['ADMIN', 'STAFF']), yearsHandler.post);
 
-const stagesHandler = makeAcademicHandler('academic_stages');
+const stagesHandler = makeSafeHandler('academic_stages');
 app.get('/academic/stages/:schoolCode', requireRole(['ADMIN', 'STAFF']), stagesHandler.get);
 app.post('/academic/stages/:schoolCode', requireRole(['ADMIN', 'STAFF']), stagesHandler.post);
 
-const gradesHandler = makeAcademicHandler('academic_grades');
+const gradesHandler = makeSafeHandler('academic_grades');
 app.get('/academic/grades/:schoolCode', requireRole(['ADMIN', 'STAFF']), gradesHandler.get);
 app.post('/academic/grades/:schoolCode', requireRole(['ADMIN', 'STAFF']), gradesHandler.post);
 
-const classesHandler = makeAcademicHandler('academic_classes');
+const classesHandler = makeSafeHandler('academic_classes');
 app.get('/academic/classes/:schoolCode', requireRole(['ADMIN', 'STAFF']), classesHandler.get);
 app.post('/academic/classes/:schoolCode', requireRole(['ADMIN', 'STAFF']), classesHandler.post);
 
-const receiptsHandler = makeAcademicHandler('finance_receipts');
+const receiptsHandler = makeSafeHandler('finance_receipts');
 app.get('/finance/receipts/:schoolCode', requireRole(['ADMIN']), receiptsHandler.get);
 app.post('/finance/receipts/:schoolCode', requireRole(['ADMIN']), receiptsHandler.post);
 
-const journalHandler = makeAcademicHandler('finance_journal');
+const journalHandler = makeSafeHandler('finance_journal', { storageTable: 'finance_journal_json' });
 app.get('/finance/journal/:schoolCode', requireRole(['ADMIN']), journalHandler.get);
 app.post('/finance/journal/:schoolCode', requireRole(['ADMIN']), journalHandler.post);
 
-const accountsHandler = makeAcademicHandler('finance_accounts');
+const accountsHandler = makeSafeHandler('finance_accounts', { storageTable: 'finance_accounts_json' });
 app.get('/finance/accounts/:schoolCode', requireRole(['ADMIN']), accountsHandler.get);
 app.post('/finance/accounts/:schoolCode', requireRole(['ADMIN']), accountsHandler.post);
 
-const banksHandler = makeAcademicHandler('finance_banks');
+const banksHandler = makeSafeHandler('finance_banks');
 app.get('/finance/banks/:schoolCode', requireRole(['ADMIN']), banksHandler.get);
 app.post('/finance/banks/:schoolCode', requireRole(['ADMIN']), banksHandler.post);
 
-const suppliersHandler = makeAcademicHandler('finance_suppliers');
+const suppliersHandler = makeSafeHandler('finance_suppliers');
 app.get('/finance/suppliers/:schoolCode', requireRole(['ADMIN']), suppliersHandler.get);
 app.post('/finance/suppliers/:schoolCode', requireRole(['ADMIN']), suppliersHandler.post);
 
-const feeItemsHandler = makeAcademicHandler('finance_fee_items');
+const feeItemsHandler = makeSafeHandler('finance_fee_items', { storageTable: 'finance_fee_items_json' });
 app.get('/finance/fee-items/:schoolCode', requireRole(['ADMIN']), feeItemsHandler.get);
 app.post('/finance/fee-items/:schoolCode', requireRole(['ADMIN']), feeItemsHandler.post);
 
-const feeStructureHandler = makeAcademicHandler('finance_fee_structure');
+const feeStructureHandler = makeSafeHandler('finance_fee_structure', { storageTable: 'finance_fee_structure_json' });
 app.get('/finance/fee-structure/:schoolCode', requireRole(['ADMIN']), feeStructureHandler.get);
 app.post('/finance/fee-structure/:schoolCode', requireRole(['ADMIN']), feeStructureHandler.post);
 
-const auditHandler = makeAcademicHandler('audit_logs');
+const auditHandler = makeSafeHandler('audit_logs');
 app.get('/audit/logs/:schoolCode', requireRole(['ADMIN', 'DEVELOPER']), auditHandler.get);
 app.post('/audit/logs/:schoolCode', requireRole(['ADMIN', 'DEVELOPER']), auditHandler.post);
 
-const storeTypesHandler = makeAcademicHandler('store_inventory_types');
+const storeTypesHandler = makeSafeHandler('store_inventory_types');
 app.get('/stores/types/:schoolCode', storeTypesHandler.get);
 app.post('/stores/types/:schoolCode', storeTypesHandler.post);
 
@@ -618,7 +667,7 @@ const storeTypeSeqHandler = {
       return res.json(row ? row.value : 0);
     } catch (err) {
       console.error('GET /stores/types-seq error', err);
-      return res.status(500).json({ error: 'Failed to load type seq' });
+      return res.json(0);
     }
   },
   post: (req, res) => {
@@ -631,7 +680,7 @@ const storeTypeSeqHandler = {
       return res.json({ success: true });
     } catch (err) {
       console.error('POST /stores/types-seq error', err);
-      return res.status(500).json({ error: 'Failed to save type seq' });
+      return res.json({ success: false });
     }
   }
 };
@@ -647,7 +696,7 @@ const storeAutoSeqHandler = {
       return res.json(row ? row.value : 0);
     } catch (err) {
       console.error('GET /stores/auto-seq error', err);
-      return res.status(500).json({ error: 'Failed to load auto seq' });
+      return res.json(0);
     }
   },
   post: (req, res) => {
@@ -660,14 +709,14 @@ const storeAutoSeqHandler = {
       return res.json({ success: true });
     } catch (err) {
       console.error('POST /stores/auto-seq error', err);
-      return res.status(500).json({ error: 'Failed to save auto seq' });
+      return res.json({ success: false });
     }
   }
 };
 app.get('/stores/auto-seq/:schoolCode', storeAutoSeqHandler.get);
 app.post('/stores/auto-seq/:schoolCode', storeAutoSeqHandler.post);
 
-const storeAssetsHandler = makeAcademicHandler('store_fixed_assets');
+const storeAssetsHandler = makeSafeHandler('store_fixed_assets');
 app.get('/stores/assets/:schoolCode', storeAssetsHandler.get);
 app.post('/stores/assets/:schoolCode', storeAssetsHandler.post);
 
@@ -680,7 +729,7 @@ const storeAssetSeqHandler = {
       return res.json(row ? row.value : 0);
     } catch (err) {
       console.error('GET /stores/assets-seq error', err);
-      return res.status(500).json({ error: 'Failed to load asset seq' });
+      return res.json(0);
     }
   },
   post: (req, res) => {
@@ -693,26 +742,26 @@ const storeAssetSeqHandler = {
       return res.json({ success: true });
     } catch (err) {
       console.error('POST /stores/assets-seq error', err);
-      return res.status(500).json({ error: 'Failed to save asset seq' });
+      return res.json({ success: false });
     }
   }
 };
 app.get('/stores/assets-seq/:schoolCode', storeAssetSeqHandler.get);
 app.post('/stores/assets-seq/:schoolCode', storeAssetSeqHandler.post);
 
-const stockReceiveHandler = makeAcademicHandler('store_stock_receives');
+const stockReceiveHandler = makeSafeHandler('store_stock_receives');
 app.get('/stores/receive/:schoolCode', stockReceiveHandler.get);
 app.post('/stores/receive/:schoolCode', stockReceiveHandler.post);
 
-const stockIssueHandler = makeAcademicHandler('store_stock_issues');
+const stockIssueHandler = makeSafeHandler('store_stock_issues');
 app.get('/stores/issue/:schoolCode', stockIssueHandler.get);
 app.post('/stores/issue/:schoolCode', stockIssueHandler.post);
 
-const goodsInHandler = makeAcademicHandler('store_goods_in');
+const goodsInHandler = makeSafeHandler('store_goods_in');
 app.get('/stores/goods-in/:schoolCode', goodsInHandler.get);
 app.post('/stores/goods-in/:schoolCode', goodsInHandler.post);
 
-const stockMovementHandler = makeAcademicHandler('store_stock_movement');
+const stockMovementHandler = makeSafeHandler('store_stock_movement');
 app.get('/stores/movement/:schoolCode', stockMovementHandler.get);
 app.post('/stores/movement/:schoolCode', stockMovementHandler.post);
 
@@ -725,7 +774,7 @@ const storeVoucherSeqHandler = {
       return res.json(row ? row.value : 0);
     } catch (err) {
       console.error('GET /stores/voucher-seq error', err);
-      return res.status(500).json({ error: 'Failed to load voucher seq' });
+      return res.json(0);
     }
   },
   post: (req, res) => {
@@ -738,7 +787,7 @@ const storeVoucherSeqHandler = {
       return res.json({ success: true });
     } catch (err) {
       console.error('POST /stores/voucher-seq error', err);
-      return res.status(500).json({ error: 'Failed to save voucher seq' });
+      return res.json({ success: false });
     }
   }
 };
@@ -754,7 +803,7 @@ const storeAutoSeqHandler2 = {
       return res.json(row ? row.value : 0);
     } catch (err) {
       console.error('GET /stores/auto-seq-v2 error', err);
-      return res.status(500).json({ error: 'Failed to load auto seq' });
+      return res.json(0);
     }
   },
   post: (req, res) => {
@@ -767,52 +816,78 @@ const storeAutoSeqHandler2 = {
       return res.json({ success: true });
     } catch (err) {
       console.error('POST /stores/auto-seq-v2 error', err);
-      return res.status(500).json({ error: 'Failed to save auto seq' });
+      return res.json({ success: false });
     }
   }
 };
 app.get('/stores/auto-seq-v2/:schoolCode', storeAutoSeqHandler2.get);
 app.post('/stores/auto-seq-v2/:schoolCode', storeAutoSeqHandler2.post);
 
-const parentsHandler = makeAcademicHandler('members_parents');
+const parentsHandler = makeSafeHandler('members_parents', { storageTable: 'members_parents_json' });
 app.get('/members/parents/:schoolCode', parentsHandler.get);
 app.post('/members/parents/:schoolCode', parentsHandler.post);
 
-const rulesHandler = makeAcademicHandler('rules_config');
+const rulesHandler = makeSafeHandler('rules_config');
 app.get('/settings/rules/:schoolCode', rulesHandler.get);
 app.post('/settings/rules/:schoolCode', rulesHandler.post);
 
-const schoolsHandler = makeAcademicHandler('schools_master');
+const schoolsHandler = makeSafeHandler('schools_master');
 app.get('/schools/:schoolCode', schoolsHandler.get);
 app.post('/schools/:schoolCode', schoolsHandler.post);
 
-const attendanceHandler = makeAcademicHandler('hr_attendance_records');
+const attendanceHandler = makeSafeHandler('hr_attendance_records');
 app.get('/hr/attendance/:schoolCode', attendanceHandler.get);
 app.post('/hr/attendance/:schoolCode', attendanceHandler.post);
 
-const operationalHandler = makeAcademicHandler('hr_operational_records');
+const operationalHandler = makeSafeHandler('hr_operational_records');
 app.get('/hr/operational/:schoolCode', operationalHandler.get);
 app.post('/hr/operational/:schoolCode', operationalHandler.post);
 
-const payrollDraftHandler = makeAcademicHandler('hr_payroll_draft');
+const payrollDraftHandler = makeSafeHandler('hr_payroll_draft');
 app.get('/hr/payroll-draft/:schoolCode', payrollDraftHandler.get);
 app.post('/hr/payroll-draft/:schoolCode', payrollDraftHandler.post);
 
-const reportSettingsHandler = makeAcademicHandler('report_settings');
+const reportSettingsHandler = makeSafeHandler('report_settings');
 app.get('/reports/settings/:schoolCode', reportSettingsHandler.get);
 app.post('/reports/settings/:schoolCode', reportSettingsHandler.post);
 
-const finCloseHandler = makeAcademicHandler('financial_close_flags');
+const finCloseHandler = makeSafeHandler('financial_close_flags');
 app.get('/finance/close-flags/:schoolCode', finCloseHandler.get);
 app.post('/finance/close-flags/:schoolCode', finCloseHandler.post);
 
-const otpTrustHandler = makeAcademicHandler('otp_device_trust');
+const otpTrustHandler = makeSafeHandler('otp_device_trust');
 app.get('/security/otp-trust/:schoolCode', otpTrustHandler.get);
 app.post('/security/otp-trust/:schoolCode', otpTrustHandler.post);
 
 app.use('/backups', backupsRouter);
 
+// Global error handler to avoid 500/502 crashes
+// Ensures CORS headers are always present and returns safe defaults
+app.use((err, req, res, _next) => {
+  applyCorsHeaders(req, res);
+  const status = err?.status || 500;
+  const isGet = req.method === 'GET';
+  // Log full stack for diagnostics
+  console.error('GLOBAL_ERROR_HANDLER', {
+    path: req.originalUrl,
+    message: err?.message,
+    stack: err?.stack
+  });
+  if (isGet) {
+    return res.status(status).json([]);
+  }
+  return res.status(status).json({ ok: false, error: 'Internal error', code: 'INTERNAL_ERROR' });
+});
+
 app.listen(PORT, "0.0.0.0", () => {
   console.log("🚀 EXPRESS LISTENING ON PORT", PORT);
   console.log("CORS + OPTIONS HANDLER ACTIVE");
+});
+
+process.on('unhandledRejection', (reason) => {
+  console.error('UNHANDLED_REJECTION', reason);
+});
+
+process.on('uncaughtException', (err) => {
+  console.error('UNCAUGHT_EXCEPTION', err);
 });

@@ -11,6 +11,29 @@ import { getSecuritySettings } from './security/securitySettings';
 import { API_BASE_URL } from './src/services/api';
 
 const API_BASE = API_BASE_URL;
+const parseJwt = (token?: string | null) => {
+  try {
+    if (!token) return null;
+    const part = token.split('.')[1];
+    if (!part) return null;
+    return JSON.parse(atob(part));
+  } catch {
+    return null;
+  }
+};
+
+const hasValidAdminToken = (token?: string | null, scopedCode?: string) => {
+  const payload = parseJwt(token);
+  if (!payload) return false;
+  const isAdmin =
+    payload.role?.toUpperCase() === 'ADMIN' ||
+    payload.Role?.toUpperCase() === 'ADMIN';
+  const schoolCode = payload.schoolCode || payload.School_Code || '';
+  if (!isAdmin || !schoolCode) return false;
+  return scopedCode
+    ? normalizeSchoolCode(schoolCode) === normalizeSchoolCode(scopedCode)
+    : true;
+};
 
 const authHeaders = (json = false) => {
   const token = localStorage.getItem('auth_token');
@@ -18,6 +41,37 @@ const authHeaders = (json = false) => {
   if (json) headers['Content-Type'] = 'application/json';
   if (token) headers.Authorization = `Bearer ${token}`;
   return headers;
+};
+
+const resolveInitialAuth = () => {
+  const token = localStorage.getItem('auth_token');
+  const decoded = parseJwt(token);
+  const schoolCode = decoded?.schoolCode || decoded?.School_Code || '';
+  const isAdmin =
+    decoded?.role?.toUpperCase() === 'ADMIN' ||
+    decoded?.Role?.toUpperCase() === 'ADMIN';
+  const authenticated = !!token && isAdmin && !!schoolCode;
+  return { token, decoded, schoolCode, authenticated };
+};
+
+const hasAuthToken = () => !!localStorage.getItem('auth_token');
+
+const fetchAndStoreJwt = async (schoolCode: string, username: string, password: string) => {
+  try {
+    const res = await fetch(`${API_BASE}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ schoolCode, username, password })
+    });
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data?.token) {
+      localStorage.setItem('auth_token', data.token);
+      if (data.user) localStorage.setItem('auth_user', JSON.stringify(data.user));
+    }
+  } catch {
+    /* ignore token fetch errors to avoid breaking local login */
+  }
 };
 
 const LANG_KEY = 'EDULOGIC_LANG_V2';
@@ -38,6 +92,7 @@ const STORAGE_KEYS = {
 
 const normalizeSchoolCode = (value: string) => value.trim().toUpperCase();
 const defaultSchoolModules = () => SYSTEM_MODULES.filter((m) => m.id !== 'programmer').map((m) => m.id);
+const initialTokenPayload = parseJwt(localStorage.getItem('auth_token') || '');
 
 const STUDENT_NUM_BUDGET_REPORT = {
   Report_ID: 'STU-RPT-NUM-BUDGET',
@@ -321,9 +376,25 @@ export const INITIAL_STATE = {
 };
 
 export const useStore = () => {
+  const initialAuth = resolveInitialAuth();
   const [lang, setLang] = useState<'ar' | 'en'>(() => (localStorage.getItem(LANG_KEY) as 'ar' | 'en') || 'ar');
-  const [schoolCode, setSchoolCode] = useState(() => localStorage.getItem(SCHOOL_CODE_KEY) || '');
+  const [schoolCode, setSchoolCode] = useState(() => initialAuth.schoolCode || localStorage.getItem(SCHOOL_CODE_KEY) || '');
   const [programmerContext, setProgrammerContext] = useState(() => localStorage.getItem(PROGRAMMER_CONTEXT_KEY) || '');
+
+  const isAuthed = () => {
+    const token = localStorage.getItem('auth_token');
+    if (!token) return false;
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return !!(
+        payload &&
+        payload.schoolCode &&
+        String(payload.role || '').toUpperCase() === 'ADMIN'
+      );
+    } catch {
+      return false;
+    }
+  };
 
   const getYearKey = (code: string) => `${YEAR_KEY}__${code}`;
   const getUserKey = (code: string) => `${USER_ID_KEY}__${code}`;
@@ -412,7 +483,7 @@ export const useStore = () => {
 
   const initialRef = useRef<{ db: any; yearId: string; scopedCode: string } | null>(null);
   if (!initialRef.current) {
-    const { db, yearId, scopedCode } = loadDbForSchool(schoolCode || 'DEFAULT');
+    const { db, yearId, scopedCode } = loadDbForSchool(schoolCode || initialAuth.schoolCode || 'DEFAULT');
     initialRef.current = { db, yearId, scopedCode };
   }
 
@@ -466,7 +537,7 @@ export const useStore = () => {
 
   // مزامنة بيانات الموظفين مع الباك-إند
   useEffect(() => {
-    if (!activeSchoolCode) return;
+    if (!activeSchoolCode || !isAuthed()) return;
     let cancelled = false;
     (async () => {
       try {
@@ -488,7 +559,7 @@ export const useStore = () => {
   }, [activeSchoolCode]);
 
   useEffect(() => {
-    if (!activeSchoolCode) return;
+    if (!activeSchoolCode || !isAuthed()) return;
     (async () => {
       try {
         await fetch(`${API_BASE}/employees/${encodeURIComponent(activeSchoolCode)}`, {
@@ -513,7 +584,7 @@ export const useStore = () => {
 
   // مزامنة الهيكل الأكاديمي (الأعوام، المراحل، الصفوف، الفصول)
   useEffect(() => {
-    if (!activeSchoolCode) return;
+    if (!activeSchoolCode || !isAuthed()) return;
     let cancelled = false;
     (async () => {
       try {
@@ -548,7 +619,7 @@ export const useStore = () => {
   }, [activeSchoolCode]);
 
   useEffect(() => {
-    if (!activeSchoolCode) return;
+    if (!activeSchoolCode || !isAuthed()) return;
     (async () => {
       try {
         await Promise.all([
@@ -581,7 +652,7 @@ export const useStore = () => {
 
   // مزامنة القيود المالية والإيصالات
   useEffect(() => {
-    if (!activeSchoolCode) return;
+    if (!activeSchoolCode || !isAuthed()) return;
     let cancelled = false;
     (async () => {
       try {
@@ -610,7 +681,7 @@ export const useStore = () => {
   }, [activeSchoolCode]);
 
   useEffect(() => {
-    if (!activeSchoolCode) return;
+    if (!activeSchoolCode || !isAuthed()) return;
     (async () => {
       try {
         await Promise.all([
@@ -633,7 +704,7 @@ export const useStore = () => {
 
   // مزامنة الحسابات البنكية/الموردين/الحسابات المالية/الرسوم
   useEffect(() => {
-    if (!activeSchoolCode) return;
+    if (!activeSchoolCode || !isAuthed()) return;
     let cancelled = false;
     (async () => {
       try {
@@ -683,7 +754,7 @@ export const useStore = () => {
   }, [activeSchoolCode]);
 
   useEffect(() => {
-    if (!activeSchoolCode) return;
+    if (!activeSchoolCode || !isAuthed()) return;
     (async () => {
       try {
         await Promise.all([
@@ -721,7 +792,7 @@ export const useStore = () => {
 
   // مزامنة المستخدمين وسجلات التدقيق
   useEffect(() => {
-    if (!activeSchoolCode) return;
+    if (!activeSchoolCode || !isAuthed()) return;
     let cancelled = false;
     (async () => {
       try {
@@ -750,7 +821,7 @@ export const useStore = () => {
   }, [activeSchoolCode]);
 
   useEffect(() => {
-    if (!activeSchoolCode) return;
+    if (!activeSchoolCode || !isAuthed()) return;
     (async () => {
       try {
         await Promise.all([
@@ -773,7 +844,7 @@ export const useStore = () => {
 
   // مزامنة المدارس/أولياء الأمور/القواعد
   useEffect(() => {
-    if (!activeSchoolCode) return;
+    if (!activeSchoolCode || !isAuthed()) return;
     let cancelled = false;
     (async () => {
       try {
@@ -805,7 +876,7 @@ export const useStore = () => {
   }, [activeSchoolCode]);
 
   useEffect(() => {
-    if (!activeSchoolCode) return;
+    if (!activeSchoolCode || !isAuthed()) return;
     (async () => {
       try {
         await Promise.all([
@@ -917,7 +988,7 @@ export const useStore = () => {
     setCurrentUser(null);
   };
 
-  const login = (code: string, username: string, password: string) => {
+  const login = async (code: string, username: string, password: string) => {
     const scopedCode = normalizeSchoolCode(code);
     const { db: nextDb, yearId } = loadDbForSchool(scopedCode);
     setActiveSchoolCode(scopedCode);
@@ -964,6 +1035,7 @@ export const useStore = () => {
       setWorkingYearId(yearId);
       setCurrentUser(user);
       localStorage.setItem(getUserKey(scopedCode), user.User_ID);
+      await fetchAndStoreJwt(scopedCode, username, password);
       return { ok: true };
     }
 
@@ -1029,7 +1101,7 @@ export const useStore = () => {
 
   const cancelOtp = () => setPendingOtp(null);
 
-  const enterSchoolAsAdmin = (code: string, username: string, password: string) => {
+  const enterSchoolAsAdmin = async (code: string, username: string, password: string) => {
     const scopedCode = normalizeSchoolCode(code);
     const { db: nextDb, yearId } = loadDbForSchool(scopedCode);
     const user = nextDb.users?.find((u: any) => u.Username === username && u.Password_Hash === password && u.Is_Active !== false);
@@ -1043,6 +1115,7 @@ export const useStore = () => {
     localStorage.removeItem(SCHOOL_CODE_KEY);
     localStorage.setItem(PROGRAMMER_CONTEXT_KEY, scopedCode);
     setProgrammerContext(scopedCode);
+    await fetchAndStoreJwt(scopedCode, username, password);
     return { ok: true };
   };
 

@@ -1,10 +1,10 @@
 import { Router } from 'express';
 import { getOne, run, all } from '../../db/sqlite.js';
-import authToken from '../../middleware/authToken.js';
+import authJwt from '../../middlewares/authJwt.js';
 
 const router = Router();
 
-router.get('/:schoolCode', authToken, async (req, res) => {
+router.get('/:schoolCode', authJwt, async (req, res) => {
   try {
     const { schoolCode } = req.params;
     const row = getOne('SELECT data FROM academic_stages WHERE schoolCode = ?', [schoolCode]);
@@ -16,7 +16,7 @@ router.get('/:schoolCode', authToken, async (req, res) => {
   }
 });
 
-router.post('/:schoolCode', authToken, async (req, res) => {
+router.post('/:schoolCode', authJwt, async (req, res) => {
   const { schoolCode } = req.params;
   const payload = Array.isArray(req.body) ? req.body : [];
   const data = JSON.stringify(payload);
@@ -29,7 +29,7 @@ router.post('/:schoolCode', authToken, async (req, res) => {
 });
 
 // تحديث مرحلة
-router.put('/:id', authToken, async (req, res) => {
+router.put('/:id', authJwt, async (req, res) => {
   const { id } = req.params;
   const { name, order_index = 0 } = req.body;
   run(
@@ -42,7 +42,7 @@ router.put('/:id', authToken, async (req, res) => {
 });
 
 // حذف مرحلة مع حماية الصفوف التابعة
-router.delete('/:id', authToken, async (req, res) => {
+router.delete('/:id', authJwt, async (req, res) => {
   const { id } = req.params;
   const grades = await all(`SELECT id FROM academic_grades WHERE stage_id = ?`, [id]);
   if (grades.length > 0) {

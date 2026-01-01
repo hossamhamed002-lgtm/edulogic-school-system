@@ -353,7 +353,11 @@ const SchoolsManager: React.FC<{ store?: any }> = ({ store }) => {
             <KeyRound className="text-indigo-600" />
             <h3 className="text-xl font-black text-slate-800">{isRtl ? 'إدارة بيانات المدرسة' : 'School Details'}</h3>
           </div>
-          <button onClick={handleSave} className="px-6 py-2 bg-indigo-600 text-white rounded-xl font-black flex items-center gap-2 hover:bg-indigo-700">
+          <button
+            type="button"
+            onClick={handleSave}
+            className="px-6 py-2 bg-indigo-600 text-white rounded-xl font-black flex items-center gap-2 hover:bg-indigo-700"
+          >
             <Save size={18} /> {isRtl ? 'حفظ' : 'Save'}
           </button>
         </div>

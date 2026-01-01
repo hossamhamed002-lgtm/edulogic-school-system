@@ -1,11 +1,11 @@
 import { Router } from 'express';
-import authToken from '../../middleware/authToken.js';
+import authJwt from '../../middlewares/authJwt.js';
 import { all, run } from '../../db/sqlite.js';
 
 const router = Router();
 
 // جلب الأعوام الدراسية
-router.get('/:schoolCode', authToken, async (req, res) => {
+router.get('/:schoolCode', authJwt, async (req, res) => {
   const { schoolCode } = req.params;
   const rows = await all(
     `SELECT * FROM academic_years
@@ -17,7 +17,7 @@ router.get('/:schoolCode', authToken, async (req, res) => {
 });
 
 // إضافة عام
-router.post('/:schoolCode', authToken, async (req, res) => {
+router.post('/:schoolCode', authJwt, async (req, res) => {
   const { schoolCode } = req.params;
   const { name, start_date, end_date, is_active = 0 } = req.body;
 
@@ -41,7 +41,7 @@ router.post('/:schoolCode', authToken, async (req, res) => {
 });
 
 // تعديل عام
-router.put('/:id', authToken, async (req, res) => {
+router.put('/:id', authJwt, async (req, res) => {
   const { id } = req.params;
   const { name, start_date, end_date, is_active = 0, school_code } = req.body;
 
@@ -65,7 +65,7 @@ router.put('/:id', authToken, async (req, res) => {
 });
 
 // حذف عام
-router.delete('/:id', authToken, async (req, res) => {
+router.delete('/:id', authJwt, async (req, res) => {
   const { id } = req.params;
   await run(`DELETE FROM academic_years WHERE id = ?`, [id]);
   res.json({ success: true });

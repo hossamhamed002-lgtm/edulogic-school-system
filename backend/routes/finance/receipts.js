@@ -1,10 +1,10 @@
 import { Router } from 'express';
-import authToken from '../../middleware/authToken.js';
+import authJwt from '../../middlewares/authJwt.js';
 import { all, run } from '../../db/sqlite.js';
 
 const router = Router();
 
-router.get('/:schoolCode', authToken, async (req, res) => {
+router.get('/:schoolCode', authJwt, async (req, res) => {
   try {
     const rows = await all(
       `SELECT * FROM finance_receipts WHERE school_code = ? ORDER BY id DESC`,
@@ -17,7 +17,7 @@ router.get('/:schoolCode', authToken, async (req, res) => {
   }
 });
 
-router.post('/:schoolCode', authToken, async (req, res) => {
+router.post('/:schoolCode', authJwt, async (req, res) => {
   const { receipt_date, amount, description } = req.body;
   await run(
     `INSERT INTO finance_receipts (school_code, receipt_date, amount, description)

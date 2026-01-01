@@ -1,11 +1,11 @@
 import { Router } from 'express';
-import authMiddleware from '../../middleware/authMiddleware.js';
-import requireRole from '../../middleware/requireRole.js';
+import authJwt from '../../middlewares/authJwt.js';
+import requireRole from '../../middlewares/requireRole.js';
 import { all, run } from '../../db/sqlite.js';
 
 const router = Router();
 
-router.get('/:schoolCode', authMiddleware, requireRole(['ADMIN', 'ACCOUNTANT']), async (req, res) => {
+router.get('/:schoolCode', authJwt, requireRole(['ADMIN', 'ACCOUNTANT']), async (req, res) => {
   try {
     const rows = await all(
       `SELECT * FROM finance_accounts WHERE school_code = ?`,
@@ -18,7 +18,7 @@ router.get('/:schoolCode', authMiddleware, requireRole(['ADMIN', 'ACCOUNTANT']),
   }
 });
 
-router.post('/:schoolCode', authMiddleware, requireRole(['ADMIN', 'ACCOUNTANT']), async (req, res) => {
+router.post('/:schoolCode', authJwt, requireRole(['ADMIN', 'ACCOUNTANT']), async (req, res) => {
   const { code, name, type, parent_id } = req.body;
   await run(
     `INSERT INTO finance_accounts (school_code, code, name, type, parent_id)

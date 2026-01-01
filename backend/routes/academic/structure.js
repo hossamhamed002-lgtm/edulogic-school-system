@@ -1,8 +1,6 @@
 import { Router } from 'express';
+import authJwt from '../../middlewares/authJwt.js';
 import { getOne } from '../../db/sqlite.js';
-
-// ميدل وير بسيط (يمكن استبداله بـ authToken الحقيقي لاحقًا)
-const auth = (_req, _res, next) => next();
 
 // محاولات استخراج معرّف وأسماء بمرونة
 const getId = (item) =>
@@ -46,7 +44,7 @@ const router = Router();
  * GET /academic/structure/:schoolCode
  * يعيد هيكل المراحل → الصفوف → الفصول في طلب واحد
  */
-router.get('/:schoolCode', auth, (req, res) => {
+router.get('/:schoolCode', authJwt, (req, res) => {
   const { schoolCode } = req.params;
 
   const stagesRow = getOne('SELECT data FROM academic_stages WHERE schoolCode = ?', [schoolCode]);

@@ -77,6 +77,9 @@ const SystemLogin: React.FC<SystemLoginProps> = ({
       localStorage.setItem('auth_token', data.token);
       localStorage.setItem('auth_user', JSON.stringify(data.user || {}));
       localStorage.setItem('token', data.token);
+      // تثبيت كود المدرسة النشط وإلغاء أي سياق مبرمج قديم
+      localStorage.setItem('EDULOGIC_ACTIVE_SCHOOL_CODE_V1', scopedCode);
+      localStorage.removeItem('EDULOGIC_PROGRAMMER_CONTEXT_V1');
       // حفظ اختيار المدرسة/العام لتجاوز شاشة الاختيار
       const selection = {
         schoolCode: scopedCode,

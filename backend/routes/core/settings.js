@@ -1,11 +1,11 @@
 import { Router } from 'express';
-import authToken from '../../middleware/authToken.js';
+import authJwt from '../../middlewares/authJwt.js';
 import { all, run } from '../../db/sqlite.js';
 
 const router = Router();
 
 // GET /settings/:schoolCode
-router.get('/:schoolCode', authToken, async (req, res) => {
+router.get('/:schoolCode', authJwt, async (req, res) => {
   const rows = await all(
     `SELECT key, value FROM core_settings WHERE school_code = ?`,
     [req.params.schoolCode]
@@ -14,7 +14,7 @@ router.get('/:schoolCode', authToken, async (req, res) => {
 });
 
 // POST /settings/:schoolCode
-router.post('/:schoolCode', authToken, async (req, res) => {
+router.post('/:schoolCode', authJwt, async (req, res) => {
   const { key, value } = req.body;
   await run(
     `INSERT INTO core_settings (school_code, key, value)

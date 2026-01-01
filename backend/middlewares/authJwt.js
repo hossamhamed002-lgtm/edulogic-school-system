@@ -17,15 +17,26 @@ export default function authJwt(req, res, next) {
       id: decoded.userId || decoded.id,
       role: decoded.role,
       schoolCode: decoded.schoolCode,
-      scope: decoded.scope
-    };
+    scope: decoded.scope,
+    source: decoded.source
+  };
 
-    if (
-      req.params?.schoolCode &&
-      req.user.role?.toUpperCase() !== 'DEVELOPER' &&
-      req.user.schoolCode &&
-      req.user.schoolCode !== req.params.schoolCode
-    ) {
+  const isImpersonation =
+    req.user?.source === 'dev_impersonation' ||
+    req.user?.impersonatedBy === 'developer';
+
+  const role = (req.user.role || '').toUpperCase();
+  const scope = (req.user.scope || '').toUpperCase();
+  const source = (req.user.source || '').toUpperCase();
+  const isDeveloper = role === 'DEVELOPER' || scope === 'SYSTEM' || source === 'DEVELOPER';
+
+  if (
+    req.params?.schoolCode &&
+    !isImpersonation &&
+    !isDeveloper &&
+    req.user.schoolCode &&
+    req.user.schoolCode !== req.params.schoolCode
+  ) {
       return res.status(403).json({ message: 'Forbidden' });
     }
 

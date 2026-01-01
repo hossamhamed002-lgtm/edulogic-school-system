@@ -1,4 +1,6 @@
-export const API_BASE_URL = 'https://schoolpaypro.onrender.com';
+// يسمح بتحديد عنوان الباك اند من .env.local (VITE_API_BASE_URL)، مع افتراضي على نسخة Render
+export const API_BASE_URL =
+  import.meta.env?.VITE_API_BASE_URL || 'https://schoolpaypro.onrender.com';
 const API_BASE = API_BASE_URL;
 
 type RequestConfig = {

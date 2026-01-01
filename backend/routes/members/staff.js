@@ -1,12 +1,10 @@
 import { Router } from 'express';
 import { all, run } from '../../db/sqlite.js';
-import authToken from '../../middleware/authToken.js';
-
-const auth = authToken;
+import authJwt from '../../middlewares/authJwt.js';
 const router = Router();
 
 // جلب العاملين
-router.get('/:schoolCode', auth, async (req, res) => {
+router.get('/:schoolCode', authJwt, async (req, res) => {
   const { schoolCode } = req.params;
   const rows = await all(
     `SELECT id, full_name, job_title, phone, email
@@ -18,7 +16,7 @@ router.get('/:schoolCode', auth, async (req, res) => {
 });
 
 // إضافة عامل
-router.post('/:schoolCode', auth, async (req, res) => {
+router.post('/:schoolCode', authJwt, async (req, res) => {
   const { schoolCode } = req.params;
   const { full_name, job_title, phone, email } = req.body;
 

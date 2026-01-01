@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { db } from '../../db/sqlite.js';
+import authJwt from '../../middlewares/authJwt.js';
 import { requireRole } from '../../middlewares/requireRole.js';
 
 const router = Router();
@@ -25,7 +26,7 @@ const insertUser = db.prepare(`
   VALUES (?, ?, ?, ?, ?)
 `);
 
-router.post('/members/users/:schoolCode', requireRole(['ADMIN']), (req, res) => {
+router.post('/members/users/:schoolCode', authJwt, requireRole(['ADMIN']), (req, res) => {
   try {
     const schoolCode = req.params.schoolCode;
     const users = Array.isArray(req.body) ? req.body : [];
@@ -60,7 +61,7 @@ router.post('/members/users/:schoolCode', requireRole(['ADMIN']), (req, res) => 
   }
 });
 
-router.get('/members/users/:schoolCode', requireRole(['ADMIN']), (req, res) => {
+router.get('/members/users/:schoolCode', authJwt, requireRole(['ADMIN']), (req, res) => {
   try {
     const rows = selectStmt.all(req.params.schoolCode);
     const result = rows.map((row) => ({

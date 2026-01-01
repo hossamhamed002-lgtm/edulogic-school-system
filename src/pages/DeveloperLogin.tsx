@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-
-const BASE_URL = 'https://schoolpaypro.onrender.com';
+import { API_BASE_URL } from '../services/api';
 
 export default function DeveloperLogin() {
   const [username, setUsername] = useState('');
@@ -13,7 +12,7 @@ export default function DeveloperLogin() {
     setError('');
     setLoading(true);
     try {
-      const res = await fetch(`${BASE_URL}/dev/login`, {
+      const res = await fetch(`${API_BASE_URL}/dev/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password })
